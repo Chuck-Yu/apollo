@@ -25,9 +25,9 @@
 #include "modules/prediction/util/data_extraction.h"
 
 DEFINE_string(
-    planning_offline_bags, "",
-    "a list of bag files or directories for offline mode. The items need to be "
-    "separated by colon ':'. ");
+    planning_source_dirs, "",
+    "a list of source files or directories for offline mode. "
+    "The items need to be separated by colon ':'. ");
 
 namespace apollo {
 namespace planning {
@@ -35,7 +35,7 @@ namespace planning {
 void GenerateLearningData() {
   AINFO << "map_dir: " << FLAGS_map_dir;
   const std::vector<std::string> inputs =
-      absl::StrSplit(FLAGS_planning_offline_bags, ':');
+      absl::StrSplit(FLAGS_planning_source_dirs, ':');
   FeatureGenerator feature_generator;
   feature_generator.Init();
   for (const auto& input : inputs) {
