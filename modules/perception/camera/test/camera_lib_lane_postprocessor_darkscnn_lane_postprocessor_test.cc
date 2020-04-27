@@ -91,7 +91,7 @@ TEST(darkSCNNLanePostprocessor, camera_lane_postprocessor_point_test) {
   unsetenv("MODULE_PATH");
   unsetenv("CYBER_PATH");
   // turn on this flag to output visualization results
-  bool enable_visualization_ = false;
+  bool enable_visualization_ = true;
   //  initialize lane detector
   LaneDetectorInitOptions init_options;
   LaneDetectorOptions detetor_options;

@@ -17,19 +17,19 @@
 
 #include "cyber/common/log.h"
 
-DEFINE_string(list, "test.list", "test file title");
+DEFINE_string(list, "/apollo/modules/perception/testdata/camera/app/test.list", "test file title");
 DEFINE_string(file_title, "", "test file title");
 DEFINE_string(debug_file, "", "debug file title");
 DEFINE_string(save_dir, "./result/", "test file title");
 DEFINE_string(file_ext_name, "", "file extension name");
 DEFINE_string(file_debug_list, "", "file extension name");
-DEFINE_bool(lane_line_debug, false, "draw the lane line result");
+DEFINE_bool(lane_line_debug, true, "draw the lane line result");
 DEFINE_bool(lane_cc_debug, false, "show lane cc image");
 DEFINE_bool(lane_center_debug, false, "draw the lane center result");
 DEFINE_bool(lane_ego_debug, false, "lane ego debug");
 DEFINE_bool(lane_result_output, false, "output the lane result");
 DEFINE_bool(lane_points_output, false, "output the detected lane points");
-DEFINE_string(image_dir, "./image/", "test image directory");
+DEFINE_string(image_dir, "/apollo/modules/perception/testdata/camera/app/lane_images/", "test image directory");
 DEFINE_string(camera_intrinsics_yaml, "params/front_6mm_intrinsics.yaml",
               "camera intrinsics_yaml");
 

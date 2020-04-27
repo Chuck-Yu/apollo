@@ -13,37 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *****************************************************************************/
+#include <fstream>
 #include <opencv2/opencv.hpp>
 
-#include <fstream>
-
 #include "gtest/gtest.h"
-
 #include "modules/perception/base/distortion_model.h"
 #include "modules/perception/base/object_types.h"
 #include "modules/perception/camera/lib/interface/base_obstacle_detector.h"
 #include "modules/perception/camera/lib/interface/base_obstacle_transformer.h"
+#include "modules/perception/camera/lib/obstacle/detector/yolo/yolo_obstacle_detector.h"
 #include "modules/perception/common/io/io_util.h"
+#include "modules/perception/inference/utils/cuda_util.h"
+// #include "modules/perception/camera/lib/feature_extractor/tfe/external_feature_extractor.h"
 
-DEFINE_string(test_list, "full_test_list.txt", "test image list");
-DEFINE_string(image_root, "", "root dir of images");
+DEFINE_string(test_list,
+              "/apollo/modules/perception/testdata/camera/lib/obstacle/"
+              "detector/yolo/img/full_test_list.txt",
+              "test image list");
+DEFINE_string(image_root,
+              "/apollo/modules/perception/testdata/camera/lib/obstacle/"
+              "detector/yolo/img",
+              "root directory of images");
 DEFINE_string(image_ext, ".jpg", "extension of image name");
 DEFINE_string(dest_dir, "/tmp", "output dir");
-DEFINE_string(vis_dir, "", "output dir");
+DEFINE_string(vis_dir, "/tmp/cam", "output dir");
 DEFINE_string(pre_detected_dir, "", "pre-detected obstacles (skip Detect)");
 DEFINE_int32(height, 1080, "image height");
 DEFINE_int32(width, 1920, "image width");
 DEFINE_string(detector, "YoloObstacleDetector", "detector");
 DEFINE_string(transformer, "MultiCueObstacleTransformer", "transformer");
-DEFINE_string(detector_root, "./data/yolo", "detector data root");
+DEFINE_string(detector_root,
+              "/apollo/modules/perception/camera/obstacle_detection/data/yolo/",
+              "detector data root");
 DEFINE_string(detector_conf, "config.pt", "detector config");
-DEFINE_string(transformer_root, "./data/multicue", "transformer data root");
+DEFINE_string(
+    transformer_root,
+    "/apollo/modules/perception/camera/obstacle_detection/data/multicue/",
+    "transformer data root");
 DEFINE_string(transformer_conf, "config.pt", "transformer config");
 DEFINE_string(dist_type, "", "dist pred type: H-on-h, H-from-h");
 
 namespace apollo {
 namespace perception {
 namespace camera {
+
+REGISTER_OBSTACLE_DETECTOR(YoloObstacleDetector);
 
 static const cv::Scalar kBoxColorMap[] = {
     cv::Scalar(0, 0, 0),        // 0
@@ -154,6 +168,8 @@ int main() {
   DataProvider::InitOptions dp_init_options;
   dp_init_options.sensor_name = "front_6mm";
 
+  AINFO << "Height: " << FLAGS_height;
+  AINFO << "Width: " << FLAGS_width;
   dp_init_options.image_height = FLAGS_height;
   dp_init_options.image_width = FLAGS_width;
   dp_init_options.device_id = 0;
@@ -167,7 +183,12 @@ int main() {
   init_options.conf_file = FLAGS_detector_conf;
 
   base::BrownCameraDistortionModel model;
-  common::LoadBrownCameraIntrinsic("params/front_6mm_intrinsics.yaml", &model);
+  common::LoadBrownCameraIntrinsic(
+      "/apollo/modules/perception/camera/obstacle_detection/params/"
+      "front_6mm_intrinsics.yaml", 
+      &model);
+  // common::LoadBrownCameraIntrinsic("params/front_6mm_intrinsics.yaml",
+  // &model);
   init_options.base_camera_model = model.get_camera_model();
   auto pinhole =
       static_cast<base::PinholeCameraModel *>(model.get_camera_model().get());

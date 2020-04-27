@@ -112,7 +112,8 @@ TEST(YoloCameraDetectorTest, demo_test) {
         cv::Point(static_cast<int>(box.xmin), static_cast<int>(box.ymin)),
         cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(255, 0, 0), 2);
   }
-  cv::imwrite("output.jpg", cv_img);
+  // AINFO << "Save output. " << cv_img.cols;
+  cv::imwrite("/tmp/output.jpg", cv_img);
   delete detector;
 }
 TEST(YoloCameraDetectorTest, config_init_test) {

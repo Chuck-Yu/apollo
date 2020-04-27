@@ -983,10 +983,12 @@ void Visualizer::ShowResult(const cv::Mat &img, const CameraFrame &frame) {
 
     if (cv_imshow_img_) {
       cv::namedWindow("Apollo Visualizer", CV_WINDOW_NORMAL);
-      cv::setWindowProperty("Apollo Visualizer", CV_WND_PROP_FULLSCREEN,
-                            CV_WINDOW_FULLSCREEN);
+      // cv::setWindowProperty("Apollo Visualizer", CV_WND_PROP_FULLSCREEN,
+                            // CV_WINDOW_FULLSCREEN);
+      cv::resize(bigimg, bigimg, cv::Size(), 0.75, 0.75);
+      // cv::resize(bigimg, (bigimg.shape[1]*0.5, bigimg.shape[0]*0.5));
       cv::imshow("Apollo Visualizer", bigimg);
-      int key = cvWaitKey(30);
+      int key = cvWaitKey(0);
       key_handler(camera_name, key);
     }
     world_image_ = cv::Mat(world_h_, wide_pixel_, CV_8UC3, black_color);
@@ -1447,7 +1449,7 @@ void Visualizer::ShowResult_all_info_single_camera(
     } else if (camera_name == camera_names_[1]) {
       all_camera_recieved_ |= 0x2;
     }
-    if (all_camera_recieved_ == 0x3) {
+    // if (all_camera_recieved_ == 0x3) {
       if (camera_name == visual_camera_) {
         draw_range_circle();
         draw_selected_image_boundary(small_w_, small_h_,
@@ -1460,10 +1462,11 @@ void Visualizer::ShowResult_all_info_single_camera(
         world_image_.copyTo(
             bigimg(cv::Rect(small_w_, 0, wide_pixel_, world_h_)));
         cv::namedWindow("Apollo Visualizer", CV_WINDOW_NORMAL);
-        cv::setWindowProperty("Apollo Visualizer", CV_WND_PROP_FULLSCREEN,
-                              CV_WINDOW_FULLSCREEN);
+        // cv::setWindowProperty("Apollo Visualizer", CV_WND_PROP_FULLSCREEN,
+                              // CV_WINDOW_FULLSCREEN);
+        cv::resize(bigimg, bigimg, cv::Size(), 0.75, 0.75);
         cv::imshow("Apollo Visualizer", bigimg);
-        int key = cvWaitKey(30);
+        int key = cvWaitKey(0) & 0xfffff;
         key_handler(camera_name, key);
 
         // output visualization panel
@@ -1476,7 +1479,7 @@ void Visualizer::ShowResult_all_info_single_camera(
         }
         all_camera_recieved_ = 0x0;
       }  // if (camera_name == visual_camera)
-    }    // if (all_camera_recieved_ == 0x3)
+    // }    // if (all_camera_recieved_ == 0x3)
   }      // if (cv_imshow_img_)
 }
 

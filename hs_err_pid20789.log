@@ -1,0 +1,587 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 175112192 bytes for committing reserved memory.
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   In 32 bit mode, the process size limit was hit
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Use 64 bit Java on a 64 bit OS
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (os_linux.cpp:2632), pid=20789, tid=0x00007f518f5a9700
+#
+# JRE version:  (8.0_131-b11) (build )
+# Java VM: OpenJDK 64-Bit Server VM (25.131-b11 mixed mode linux-amd64 compressed oops)
+# Core dump written. Default location: /apollo/core or core.20789
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007f518800b000):  JavaThread "Unknown thread" [_thread_in_vm, id=20790, stack(0x00007f518f4aa000,0x00007f518f5aa000)]
+
+Stack: [0x00007f518f4aa000,0x00007f518f5aa000],  sp=0x00007f518f5a83e0,  free space=1016k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [libjvm.so+0xa34dae]  VMError::report_and_die()+0x14e
+V  [libjvm.so+0x4d9eb9]  report_vm_out_of_memory(char const*, int, unsigned long, VMErrorType, char const*)+0x99
+V  [libjvm.so+0x8a3d33]  os::Linux::commit_memory_impl(char*, unsigned long, bool)+0xf3
+V  [libjvm.so+0x8a40d9]  os::pd_commit_memory(char*, unsigned long, unsigned long, bool)+0x29
+V  [libjvm.so+0x89d4ea]  os::commit_memory(char*, unsigned long, unsigned long, bool)+0x2a
+V  [libjvm.so+0x90aecb]  PSVirtualSpace::expand_by(unsigned long)+0x6b
+V  [libjvm.so+0x8fb339]  PSOldGen::initialize(ReservedSpace, unsigned long, char const*, int)+0xc9
+V  [libjvm.so+0x2ce72e]  AdjoiningGenerations::AdjoiningGenerations(ReservedSpace, GenerationSizer*, unsigned long)+0x38e
+V  [libjvm.so+0x8c3257]  ParallelScavengeHeap::initialize()+0x1e7
+V  [libjvm.so+0x9ff471]  Universe::initialize_heap()+0x101
+V  [libjvm.so+0xa00523]  universe_init()+0x33
+V  [libjvm.so+0x6058c5]  init_globals()+0x55
+V  [libjvm.so+0x9e6cf7]  Threads::create_vm(JavaVMInitArgs*, bool*)+0x207
+V  [libjvm.so+0x66a9e4]  JNI_CreateJavaVM+0x74
+C  [libjli.so+0x7217]  JavaMain+0x87
+C  [libpthread.so.0+0x76db]  start_thread+0xdb
+
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+
+Other Threads:
+
+=>0x00007f518800b000 (exited) JavaThread "Unknown thread" [_thread_in_vm, id=20790, stack(0x00007f518f4aa000,0x00007f518f5aa000)]
+
+VM state:not at safepoint (not fully initialized)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+GC Heap History (0 events):
+No events
+
+Deoptimization events (0 events):
+No events
+
+Internal exceptions (0 events):
+No events
+
+Events (0 events):
+No events
+
+
+Dynamic libraries:
+00400000-00401000 r-xp 00000000 103:01 14306200                          /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/bin/java
+00600000-00601000 rw-p 00000000 103:01 14306200                          /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/bin/java
+020ac000-020cd000 rw-p 00000000 00:00 0                                  [heap]
+6d0d00000-76cd00000 ---p 00000000 00:00 0 
+76cd00000-772000000 rw-p 00000000 00:00 0 
+772000000-7c0000000 ---p 00000000 00:00 0 
+7f51786a9000-7f5178832000 rw-p 00000000 00:00 0 
+7f5178832000-7f5178d65000 ---p 00000000 00:00 0 
+7f5178d65000-7f5178d8f000 rw-p 00000000 00:00 0 
+7f5178d8f000-7f5178fff000 ---p 00000000 00:00 0 
+7f5178fff000-7f5179000000 rw-p 00000000 00:00 0 
+7f5179000000-7f5179270000 rwxp 00000000 00:00 0 
+7f5179270000-7f5188000000 ---p 00000000 00:00 0 
+7f5188000000-7f5188035000 rw-p 00000000 00:00 0 
+7f5188035000-7f518c000000 ---p 00000000 00:00 0 
+7f518c165000-7f518c25d000 rw-p 00000000 00:00 0 
+7f518c25d000-7f518c613000 ---p 00000000 00:00 0 
+7f518c613000-7f518c62d000 r-xp 00000000 103:01 14306998                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libzip.so
+7f518c62d000-7f518c82c000 ---p 0001a000 103:01 14306998                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libzip.so
+7f518c82c000-7f518c82d000 rw-p 00019000 103:01 14306998                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libzip.so
+7f518c82d000-7f518c838000 r-xp 00000000 103:01 6823387                   /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f518c838000-7f518ca37000 ---p 0000b000 103:01 6823387                   /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f518ca37000-7f518ca38000 r--p 0000a000 103:01 6823387                   /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f518ca38000-7f518ca39000 rw-p 0000b000 103:01 6823387                   /lib/x86_64-linux-gnu/libnss_files-2.27.so
+7f518ca39000-7f518ca3f000 rw-p 00000000 00:00 0 
+7f518ca3f000-7f518ca56000 r-xp 00000000 103:01 6823381                   /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f518ca56000-7f518cc55000 ---p 00017000 103:01 6823381                   /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f518cc55000-7f518cc56000 r--p 00016000 103:01 6823381                   /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f518cc56000-7f518cc57000 rw-p 00017000 103:01 6823381                   /lib/x86_64-linux-gnu/libnsl-2.27.so
+7f518cc57000-7f518cc59000 rw-p 00000000 00:00 0 
+7f518cc59000-7f518cc64000 r-xp 00000000 103:01 6823391                   /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f518cc64000-7f518ce63000 ---p 0000b000 103:01 6823391                   /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f518ce63000-7f518ce64000 r--p 0000a000 103:01 6823391                   /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f518ce64000-7f518ce65000 rw-p 0000b000 103:01 6823391                   /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+7f518ce65000-7f518ce6d000 r-xp 00000000 103:01 6823383                   /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f518ce6d000-7f518d06d000 ---p 00008000 103:01 6823383                   /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f518d06d000-7f518d06e000 r--p 00008000 103:01 6823383                   /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f518d06e000-7f518d06f000 rw-p 00009000 103:01 6823383                   /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+7f518d06f000-7f518d099000 r-xp 00000000 103:01 14306977                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libjava.so
+7f518d099000-7f518d299000 ---p 0002a000 103:01 14306977                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libjava.so
+7f518d299000-7f518d29b000 rw-p 0002a000 103:01 14306977                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libjava.so
+7f518d29b000-7f518d2a8000 r-xp 00000000 103:01 14306997                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libverify.so
+7f518d2a8000-7f518d4a8000 ---p 0000d000 103:01 14306997                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libverify.so
+7f518d4a8000-7f518d4aa000 rw-p 0000d000 103:01 14306997                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/libverify.so
+7f518d4aa000-7f518d4b1000 r-xp 00000000 103:01 6823410                   /lib/x86_64-linux-gnu/librt-2.27.so
+7f518d4b1000-7f518d6b0000 ---p 00007000 103:01 6823410                   /lib/x86_64-linux-gnu/librt-2.27.so
+7f518d6b0000-7f518d6b1000 r--p 00006000 103:01 6823410                   /lib/x86_64-linux-gnu/librt-2.27.so
+7f518d6b1000-7f518d6b2000 rw-p 00007000 103:01 6823410                   /lib/x86_64-linux-gnu/librt-2.27.so
+7f518d6b2000-7f518d84f000 r-xp 00000000 103:01 6823370                   /lib/x86_64-linux-gnu/libm-2.27.so
+7f518d84f000-7f518da4e000 ---p 0019d000 103:01 6823370                   /lib/x86_64-linux-gnu/libm-2.27.so
+7f518da4e000-7f518da4f000 r--p 0019c000 103:01 6823370                   /lib/x86_64-linux-gnu/libm-2.27.so
+7f518da4f000-7f518da50000 rw-p 0019d000 103:01 6823370                   /lib/x86_64-linux-gnu/libm-2.27.so
+7f518da50000-7f518e68e000 r-xp 00000000 103:01 14307000                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/server/libjvm.so
+7f518e68e000-7f518e88e000 ---p 00c3e000 103:01 14307000                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/server/libjvm.so
+7f518e88e000-7f518e95d000 rw-p 00c3e000 103:01 14307000                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/jre/lib/amd64/server/libjvm.so
+7f518e95d000-7f518e99f000 rw-p 00000000 00:00 0 
+7f518e99f000-7f518eb86000 r-xp 00000000 103:01 6823345                   /lib/x86_64-linux-gnu/libc-2.27.so
+7f518eb86000-7f518ed86000 ---p 001e7000 103:01 6823345                   /lib/x86_64-linux-gnu/libc-2.27.so
+7f518ed86000-7f518ed8a000 r--p 001e7000 103:01 6823345                   /lib/x86_64-linux-gnu/libc-2.27.so
+7f518ed8a000-7f518ed8c000 rw-p 001eb000 103:01 6823345                   /lib/x86_64-linux-gnu/libc-2.27.so
+7f518ed8c000-7f518ed90000 rw-p 00000000 00:00 0 
+7f518ed90000-7f518ed93000 r-xp 00000000 103:01 6823355                   /lib/x86_64-linux-gnu/libdl-2.27.so
+7f518ed93000-7f518ef92000 ---p 00003000 103:01 6823355                   /lib/x86_64-linux-gnu/libdl-2.27.so
+7f518ef92000-7f518ef93000 r--p 00002000 103:01 6823355                   /lib/x86_64-linux-gnu/libdl-2.27.so
+7f518ef93000-7f518ef94000 rw-p 00003000 103:01 6823355                   /lib/x86_64-linux-gnu/libdl-2.27.so
+7f518ef94000-7f518efa9000 r-xp 00000000 103:01 14307063                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/lib/amd64/jli/libjli.so
+7f518efa9000-7f518f1a9000 ---p 00015000 103:01 14307063                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/lib/amd64/jli/libjli.so
+7f518f1a9000-7f518f1aa000 rw-p 00015000 103:01 14307063                  /home/chuck/.cache/bazel/_bazel_chuck/install/b2a7c13db48de65da851bda44622b261/_embedded_binaries/embedded_tools/jdk/lib/amd64/jli/libjli.so
+7f518f1aa000-7f518f1c4000 r-xp 00000000 103:01 6823406                   /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f518f1c4000-7f518f3c3000 ---p 0001a000 103:01 6823406                   /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f518f3c3000-7f518f3c4000 r--p 00019000 103:01 6823406                   /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f518f3c4000-7f518f3c5000 rw-p 0001a000 103:01 6823406                   /lib/x86_64-linux-gnu/libpthread-2.27.so
+7f518f3c5000-7f518f3c9000 rw-p 00000000 00:00 0 
+7f518f3c9000-7f518f3f0000 r-xp 00000000 103:01 6823327                   /lib/x86_64-linux-gnu/ld-2.27.so
+7f518f4a9000-7f518f4aa000 ---p 00000000 00:00 0 
+7f518f4aa000-7f518f4ad000 ---p 00000000 00:00 0 
+7f518f4ad000-7f518f5ac000 rw-p 00000000 00:00 0 
+7f518f5e4000-7f518f5ec000 rw-s 00000000 103:01 6291831                   /tmp/hsperfdata_chuck/20789
+7f518f5ec000-7f518f5ed000 rw-p 00000000 00:00 0 
+7f518f5ed000-7f518f5ee000 r--p 00000000 00:00 0 
+7f518f5ee000-7f518f5f0000 rw-p 00000000 00:00 0 
+7f518f5f0000-7f518f5f1000 r--p 00027000 103:01 6823327                   /lib/x86_64-linux-gnu/ld-2.27.so
+7f518f5f1000-7f518f5f2000 rw-p 00028000 103:01 6823327                   /lib/x86_64-linux-gnu/ld-2.27.so
+7f518f5f2000-7f518f5f3000 rw-p 00000000 00:00 0 
+7ffcb1e97000-7ffcb1eb9000 rw-p 00000000 00:00 0                          [stack]
+7ffcb1f0f000-7ffcb1f12000 r--p 00000000 00:00 0                          [vvar]
+7ffcb1f12000-7ffcb1f14000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+
+VM Arguments:
+java_command: <unknown>
+java_class_path (initial): .
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+PATH=/usr/local/cuda/bin:/apollo/modules/teleop/common/scripts:/apollo/bazel-bin/cyber:/apollo/bazel-bin/cyber/tools/cyber_recorder:/apollo/bazel-bin/cyber/tools/cyber_monitor:/apollo/cyber/tools/cyber_launch:/apollo/cyber/tools/cyber_channel:/apollo/cyber/tools/cyber_node:/apollo/cyber/tools/cyber_service:/usr/local/Qt5.5.1/5.5/gcc_64/bin:/apollo/bazel-bin/modules/tools/visualizer:/apollo/bazel-bin/modules/data/tools/rosbag_to_record:/apollo/bazel-bin/cyber:/apollo/bazel-bin/cyber/tools/cyber_recorder:/apollo/bazel-bin/cyber/tools/cyber_monitor:/apollo/cyber/tools/cyber_launch:/apollo/cyber/tools/cyber_channel:/apollo/cyber/tools/cyber_node:/apollo/cyber/tools/cyber_service:/usr/local/Qt5.5.1/5.5/gcc_64/bin:/apollo/bazel-bin/modules/tools/visualizer:/apollo/bazel-bin/modules/data/tools/rosbag_to_record:/usr/local/cuda/bin:/apollo/modules/teleop/common/scripts:/apollo/bazel-bin/cyber:/apollo/bazel-bin/cyber/tools/cyber_recorder:/apollo/bazel-bin/cyber/tools/cyber_monitor:/apollo/cyber/tools/cyber_launch:/apollo/cyber/tools/cyber_channel:/apollo/cyber/tools/cyber_node:/apollo/cyber/tools/cyber_service:/usr/local/Qt5.5.1/5.5/gcc_64/bin:/apollo/bazel-bin/modules/tools/visualizer:/apollo/bazel-bin/modules/data/tools/rosbag_to_record:/apollo/bazel-bin/cyber:/apollo/bazel-bin/cyber/tools/cyber_recorder:/apollo/bazel-bin/cyber/tools/cyber_monitor:/apollo/cyber/tools/cyber_launch:/apollo/cyber/tools/cyber_channel:/apollo/cyber/tools/cyber_node:/apollo/cyber/tools/cyber_service:/usr/local/Qt5.5.1/5.5/gcc_64/bin:/apollo/bazel-bin/modules/tools/visualizer:/apollo/bazel-bin/modules/data/tools/rosbag_to_record:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/apollo/scripts:/usr/local/miniconda/bin
+LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/lib:/usr/local/apollo/paddlepaddle_dep/mkldnn/lib/:/usr/local/apollo/boost/lib:/usr/local/apollo/libtorch_gpu/lib:/usr/local/fast-rtps/lib:/usr/local/Qt5.5.1/5.5/gcc_64/lib:/usr/local/adolc/lib64:/usr/local/Qt5.5.1/5.5/gcc_64/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/apollo/lib:/apollo/bazel-genfiles/external/caffe/lib:/apollo/lib:/usr/local/apollo/local_integ/lib
+DISPLAY=:1
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0xa35780], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGBUS: [libjvm.so+0xa35780], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGFPE: [libjvm.so+0x8a0910], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGPIPE: [libjvm.so+0x8a0910], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGXFSZ: [libjvm.so+0x8a0910], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGILL: [libjvm.so+0x8a0910], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGUSR1: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGUSR2: [libjvm.so+0x8a1ff0], sa_mask[0]=00000000000000000000000000000000, sa_flags=SA_RESTART|SA_SIGINFO
+SIGHUP: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGINT: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGTERM: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGQUIT: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+
+
+---------------  S Y S T E M  ---------------
+
+OS:DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=18.04
+DISTRIB_CODENAME=bionic
+DISTRIB_DESCRIPTION="Ubuntu 18.04.2 LTS"
+
+uname:Linux 4.15.0-96-generic #97-Ubuntu SMP Wed Apr 1 03:25:46 UTC 2020 x86_64
+libc:glibc 2.27 NPTL 2.27 
+rlimit: STACK 8192k, CORE infinity, NPROC infinity, NOFILE 1048576, AS infinity
+load average:13.64 6.35 4.49
+
+/proc/meminfo:
+MemTotal:       16357488 kB
+MemFree:          150408 kB
+MemAvailable:      37592 kB
+Buffers:            2412 kB
+Cached:            57852 kB
+SwapCached:        10528 kB
+Active:         14259120 kB
+Inactive:        1367812 kB
+Active(anon):   14238404 kB
+Inactive(anon):  1348720 kB
+Active(file):      20716 kB
+Inactive(file):    19092 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+SwapTotal:        999420 kB
+SwapFree:            308 kB
+Dirty:               632 kB
+Writeback:             0 kB
+AnonPages:      15557656 kB
+Mapped:            72028 kB
+Shmem:             19724 kB
+Slab:             223640 kB
+SReclaimable:      78860 kB
+SUnreclaim:       144780 kB
+KernelStack:       15168 kB
+PageTables:        75108 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     9178164 kB
+Committed_AS:   23472780 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:           0 kB
+VmallocChunk:          0 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:         0 kB
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+CmaTotal:              0 kB
+CmaFree:               0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:      293612 kB
+DirectMap2M:     9076736 kB
+DirectMap1G:     7340032 kB
+
+
+CPU:total 12 (initial active 12) (6 cores per cpu, 2 threads per core) family 6 model 158 stepping 10, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, clmul, erms, rtm, 3dnowpref, lzcnt, ht, tsc, tscinvbit, bmi1, bmi2, adx
+
+/proc/cpuinfo:
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4299.998
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 0
+cpu cores	: 6
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 1
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.001
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 1
+cpu cores	: 6
+apicid		: 2
+initial apicid	: 2
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 2
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.000
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 2
+cpu cores	: 6
+apicid		: 4
+initial apicid	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 3
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.000
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 3
+cpu cores	: 6
+apicid		: 6
+initial apicid	: 6
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 4
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.002
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 4
+cpu cores	: 6
+apicid		: 8
+initial apicid	: 8
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 5
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4299.997
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 5
+cpu cores	: 6
+apicid		: 10
+initial apicid	: 10
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 6
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4299.998
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 0
+cpu cores	: 6
+apicid		: 1
+initial apicid	: 1
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 7
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.000
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 1
+cpu cores	: 6
+apicid		: 3
+initial apicid	: 3
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 8
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.002
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 2
+cpu cores	: 6
+apicid		: 5
+initial apicid	: 5
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 9
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.000
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 3
+cpu cores	: 6
+apicid		: 7
+initial apicid	: 7
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 10
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.001
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 4
+cpu cores	: 6
+apicid		: 9
+initial apicid	: 9
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+processor	: 11
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+stepping	: 10
+microcode	: 0xca
+cpu MHz		: 4300.004
+cache size	: 12288 KB
+physical id	: 0
+siblings	: 12
+core id		: 5
+cpu cores	: 6
+apicid		: 11
+initial apicid	: 11
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 22
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+bugs		: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs taa itlb_multihit
+bogomips	: 6384.00
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 39 bits physical, 48 bits virtual
+power management:
+
+
+
+Memory: 4k page, physical 16357488k(144712k free), swap 999420k(40k free)
+
+vm_info: OpenJDK 64-Bit Server VM (25.131-b11) for linux-amd64 JRE (1.8.0_131-b11), built on Apr 12 2017 06:33:39 by "zulu_re" with gcc 4.4.7 20120313 (Red Hat 4.4.7-3)
+
+time: Wed Apr 22 14:22:37 2020
+elapsed time: 0 seconds (0d 0h 0m 0s)
+

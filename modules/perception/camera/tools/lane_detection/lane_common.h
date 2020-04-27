@@ -35,7 +35,7 @@ DECLARE_bool(lane_center_debug);
 DECLARE_bool(lane_ego_debug);
 #endif
 DECLARE_bool(lane_result_output);
-#if 0
+#if 1
 DECLARE_bool(lane_points_output);
 DECLARE_string(image_dir);
 #endif

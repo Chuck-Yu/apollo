@@ -14,10 +14,9 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include <opencv2/opencv.hpp>
-
 #include <fstream>
 #include <iomanip>
+#include <opencv2/opencv.hpp>
 
 #include "absl/strings/str_split.h"
 #include "cyber/common/file.h"
@@ -39,14 +38,16 @@
 #include "modules/perception/camera/tools/offline/transform_server.h"
 #include "modules/perception/camera/tools/offline/visualizer.h"
 #include "modules/perception/common/io/io_util.h"
+#include "yaml-cpp/yaml.h"
 
-DEFINE_string(test_list,
-              "/apollo/modules/perception/testdata/camera/lib/obstacle/"
-              "detector/yolo/img/full_test_list.txt",
-              "test image list");
+DEFINE_string(
+    test_list,
+    // "/apollo/data/bag/test_pic/test_front.txt",
+    "/apollo/modules/perception/testdata/camera/app/lane_images/test_front.txt",
+    "test image list");
 DEFINE_string(image_root,
-              "/apollo/modules/perception/testdata/camera/lib/obstacle/"
-              "detector/yolo/img/",
+              // "/apollo/data/bag/test_pic/",
+              "/apollo/modules/perception/testdata/camera/app/lane_images/",
               "root directory of images");
 DEFINE_string(image_ext, ".jpg", "extension of image name");
 DEFINE_string(image_color, "bgr", "color space of image");
@@ -57,14 +58,16 @@ DEFINE_string(tf_file, "", "tf file");
 DEFINE_string(config_file, "obstacle.pt", "config_file");
 DEFINE_string(base_camera_name, "front_6mm", "camera to be projected");
 DEFINE_string(sensor_name, "front_6mm,front_12mm", "camera to use");
-DEFINE_string(params_dir, "/apollo/modules/perception/data/params",
+DEFINE_string(params_dir,
+              "/apollo/modules/perception/camera/tools/offline/data/perception/"
+              "camera/params",
               "params directory");
 DEFINE_string(visualize_dir, "/tmp/0000", "visualize directory");
 DEFINE_double(camera_fps, 15, "camera_fps");
 DEFINE_bool(do_undistortion, false, "do_undistortion");
 DEFINE_string(undistortion_save_dir, "./undistortion_result",
               "Directory to save undistored images.");
-DEFINE_string(save_dir, "./result",
+DEFINE_string(save_dir, "/apollo/result",
               "Directory to save result images with detections.");
 
 namespace apollo {
@@ -94,6 +97,60 @@ void save_image(const std::string &path, base::Image8U &image) {  // NOLINT
   cv::Mat cv_img(image.rows(), image.cols(), cv_type, image.mutable_cpu_data(),
                  image.width_step());
   cv::imwrite(path, cv_img);
+}
+
+// @description: load camera extrinsics from yaml file
+static bool LoadExtrinsics(const std::string &yaml_file,
+                           Eigen::Matrix4d *camera_extrinsic) {
+  if (!apollo::cyber::common::PathExists(yaml_file)) {
+    AINFO << yaml_file << " not exist!";
+    return false;
+  }
+  YAML::Node node = YAML::LoadFile(yaml_file);
+  double qw = 0.0;
+  double qx = 0.0;
+  double qy = 0.0;
+  double qz = 0.0;
+  double tx = 0.0;
+  double ty = 0.0;
+  double tz = 0.0;
+  try {
+    if (node.IsNull()) {
+      AINFO << "Load " << yaml_file << " failed! please check!";
+      return false;
+    }
+    qw = node["transform"]["rotation"]["w"].as<double>();
+    qx = node["transform"]["rotation"]["x"].as<double>();
+    qy = node["transform"]["rotation"]["y"].as<double>();
+    qz = node["transform"]["rotation"]["z"].as<double>();
+    tx = node["transform"]["translation"]["x"].as<double>();
+    ty = node["transform"]["translation"]["y"].as<double>();
+    tz = node["transform"]["translation"]["z"].as<double>();
+  } catch (YAML::InvalidNode &in) {
+    AERROR << "load camera extrisic file " << yaml_file
+           << " with error, YAML::InvalidNode exception";
+    return false;
+  } catch (YAML::TypedBadConversion<double> &bc) {
+    AERROR << "load camera extrisic file " << yaml_file
+           << " with error, YAML::TypedBadConversion exception";
+    return false;
+  } catch (YAML::Exception &e) {
+    AERROR << "load camera extrisic file " << yaml_file
+           << " with error, YAML exception:" << e.what();
+    return false;
+  }
+  camera_extrinsic->setConstant(0);
+  Eigen::Quaterniond q;
+  q.x() = qx;
+  q.y() = qy;
+  q.z() = qz;
+  q.w() = qw;
+  (*camera_extrinsic).block<3, 3>(0, 0) = q.normalized().toRotationMatrix();
+  (*camera_extrinsic)(0, 3) = tx;
+  (*camera_extrinsic)(1, 3) = ty;
+  (*camera_extrinsic)(2, 3) = tz;
+  (*camera_extrinsic)(3, 3) = 1;
+  return true;
 }
 
 int work() {
@@ -147,8 +204,9 @@ int work() {
     AINFO << "Init data_provider for " << camera_names[i];
   }
 
-  // Init intrinsic
+  // Init intrinsic/extrinsic/
   std::map<std::string, Eigen::Matrix3f> intrinsic_map;
+  std::map<std::string, Eigen::Matrix4d> extrinsic_map;
   auto manager = common::SensorManager::Instance();
   for (const auto &camera_name : camera_names) {
     base::BaseCameraModelPtr model;
@@ -158,6 +216,10 @@ int work() {
     intrinsic_map[camera_name] = intrinsic;
     AINFO << "#intrinsics of " << camera_name << ": "
           << intrinsic_map[camera_name];
+    Eigen::Matrix4d extrinsic;
+    LoadExtrinsics(FLAGS_params_dir + "/" + camera_name + "_extrinsics.yaml",
+                   &extrinsic);
+    extrinsic_map[camera_name] = extrinsic;
   }
 
   // Init extrinsic
@@ -212,7 +274,31 @@ int work() {
                                      name_camera_pitch_angle_diff_map,
                                      kDefaultPitchAngle);
   Visualizer visualize;
-  CHECK(visualize.Init(camera_names, &transform_server));
+  // CHECK(visualize.Init(camera_names, &transform_server));
+  // Init visualizer
+  // TODO(techoe, yg13): homography from image to ground should be
+  // computed from camera height and pitch.
+  // Apply online calibration to adjust pitch/height automatically
+  // Temporary code is used here for testing
+  double pitch_adj_degree = 0.0;
+  double yaw_adj_degree = 0.0;
+  double roll_adj_degree = 0.0;
+  double image_height = 1080;
+  double image_width = 1920;
+  std::string visual_camera = "front_6mm";
+  // load in lidar to imu extrinsic
+  Eigen::Matrix4d ex_lidar2imu;
+  LoadExtrinsics(FLAGS_params_dir + "/" + "velodyne128_novatel_extrinsics.yaml",
+                 &ex_lidar2imu);
+  AINFO << "velodyne128_novatel_extrinsics: " << ex_lidar2imu;
+
+  CHECK(visualize.Init_all_info_single_camera(
+      camera_names, visual_camera, intrinsic_map, extrinsic_map, ex_lidar2imu,
+      pitch_adj_degree, yaw_adj_degree, roll_adj_degree, image_height,
+      image_width));
+  Eigen::Matrix3d homography_image2ground =
+      visualize.homography_im2car(visual_camera);
+  perception.SetIm2CarHomography(homography_image2ground);
   visualize.SetDirectory(FLAGS_visualize_dir);
   std::string line;
   std::string image_name;
@@ -244,6 +330,7 @@ int work() {
       AERROR << "Cannot read image: " << image_path;
       return -1;
     }
+    cv::resize(image, image, cv::Size(1920, 1080));
 
     frame_id++;
     CameraFrame &frame = frame_list[frame_id % FRAME_CAPACITY];
@@ -303,9 +390,12 @@ int work() {
       AINFO << "Undistorted image saved to : "
             << save_dir + "/" + image_name + FLAGS_image_ext;
     }
+    Eigen::Affine3d world2camera = frame.camera2world_pose.inverse();
 
     CHECK(perception.Perception(options, &frame));
-    visualize.ShowResult(image, frame);
+    // visualize.ShowResult(image, frame);
+    visualize.ShowResult_all_info_single_camera(image, frame, nullptr,
+                                                world2camera);
 
     save_dir = FLAGS_save_dir;
     if (!cyber::common::PathExists(save_dir)) {

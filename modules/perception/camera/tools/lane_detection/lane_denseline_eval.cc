@@ -36,10 +36,13 @@ int lane_postprocessor_eval() {
   LaneDetectorInitOptions init_options;
   LaneDetectorOptions detetor_options;
   init_options.conf_file = "config.pt";
-  init_options.root_dir = "data/";
+  init_options.root_dir = "/apollo/modules/perception/testdata/camera/lib/"
+      "lane/detector/denseline/data/";
   base::BrownCameraDistortionModel model;
-  if (!common::LoadBrownCameraIntrinsic("params/front_6mm_intrinsics.yaml",
-                                        &model)) {
+  if (!common::LoadBrownCameraIntrinsic(
+          "/apollo/modules/perception/camera/obstacle_detection/params/"
+          "front_6mm_intrinsics.yaml",
+          &model)) {
     AERROR << "LoadBrownCameraIntrinsic Error!";
     return -1;
   }
@@ -52,9 +55,13 @@ int lane_postprocessor_eval() {
   std::shared_ptr<DenselineLanePostprocessor> lane_postprocessor;
   lane_postprocessor.reset(new DenselineLanePostprocessor);
   LanePostprocessorInitOptions postprocessor_init_options;
-  postprocessor_init_options.detect_config_root = "./data/";
+  postprocessor_init_options.detect_config_root =
+      "/apollo/modules/perception/testdata/"
+      "camera/lib/lane/postprocessor/denseline/data/";
   postprocessor_init_options.detect_config_name = "config.pt";
-  postprocessor_init_options.root_dir = "./data/";
+  postprocessor_init_options.root_dir =
+      "/apollo/modules/perception/testdata/"
+      "camera/lib/lane/postprocessor/denseline/data/";
   postprocessor_init_options.conf_file = "lane_postprocessor_config.pt";
   lane_postprocessor->Init(postprocessor_init_options);
   LanePostprocessorOptions postprocessor_options;
@@ -78,7 +85,7 @@ int lane_postprocessor_eval() {
 
   // Lane process for each image
   for (int i = 0; i < static_cast<int>(imnames.size()); ++i) {
-    std::string impath = imnames[i];
+    std::string impath = FLAGS_image_dir.c_str() + imnames[i];
     int pos1 = static_cast<int>(impath.rfind("/"));
     int pos2 = static_cast<int>(impath.rfind(".jpg"));
     FLAGS_file_title = impath.substr(pos1 + 1, pos2 - pos1 - 1);
@@ -177,7 +184,7 @@ int lane_postprocessor_eval() {
     lane_postprocessor->GetLaneCCs(&lane_map, &lane_map_width, &lane_map_height,
                                    &lane_ccs, &select_lane_ccs);
 
-    const std::vector<std::vector<LanePointInfo> >& detect_laneline_point_set =
+    const std::vector<std::vector<LanePointInfo>>& detect_laneline_point_set =
         lane_postprocessor->GetLanelinePointSet();
     if (FLAGS_lane_line_debug) {
       save_img_path = absl::StrCat(FLAGS_save_dir, "/", FLAGS_file_title, "_0_",

@@ -75,9 +75,10 @@ static bool SetCameraHeight(const std::string &sensor_name,
   float base_h = default_camera_height;
   float camera_offset = 0.0f;
   try {
-    YAML::Node lidar_height =
-        YAML::LoadFile(params_dir + "/" + "velodyne128_height.yaml");
-    base_h = lidar_height["vehicle"]["parameters"]["height"].as<float>();
+    // YAML::Node lidar_height =
+        // YAML::LoadFile(params_dir + "/" + "velodyne128_height.yaml");
+    // base_h = lidar_height["vehicle"]["parameters"]["height"].as<float>();
+    base_h = 1.5;
     AINFO << base_h;
     YAML::Node camera_ex =
         YAML::LoadFile(params_dir + "/" + sensor_name + "_extrinsics.yaml");

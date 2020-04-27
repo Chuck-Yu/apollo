@@ -29,7 +29,7 @@ bool TransformServer::Init(const std::vector<std::string> &camera_names,
   // 1. Init lidar height
   try {
     YAML::Node lidar_height =
-        YAML::LoadFile(params_dir + "/" + "velodyne128_height.yaml");
+        YAML::LoadFile(params_dir + "/" + "velodyne64_height.yaml");
     Eigen::Affine3d trans;
     trans.linear() = Eigen::Matrix3d::Identity();
     AINFO << trans.translation() << " "
