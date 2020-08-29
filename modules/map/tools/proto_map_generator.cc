@@ -22,6 +22,7 @@ limitations under the License.
 #include "modules/map/hdmap/adapter/opendrive_adapter.h"
 #include "modules/map/hdmap/hdmap_util.h"
 #include "modules/map/proto/map.pb.h"
+#include "modules/map/proto/base_map.pb.h"
 
 /**
  * A map tool to transform opendrive map to pb map
@@ -35,10 +36,11 @@ int main(int argc, char **argv) {
 
   google::ParseCommandLineFlags(&argc, &argv, true);
 
+//   const auto map_filename = "./base_map.xml";
   const auto map_filename = FLAGS_map_dir + "/base_map.xml";
-  apollo::hdmap::Map pb_map;
+  allride::hdmap::BaseMap pb_map;
   CHECK(
-      apollo::hdmap::adapter::OpendriveAdapter::LoadData(map_filename, &pb_map))
+      apollo::hdmap::adapter::OpendriveAdapter::LoadData(map_filename, pb_map))
       << "fail to load data from : " << map_filename;
 
   const std::string output_ascii_file = FLAGS_output_dir + "/base_map.txt";

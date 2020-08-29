@@ -352,6 +352,165 @@ void ProtoOrganizer::GetOverlapElements(
   GetJunctionObjectOverlapElements(junctions);
 }
 
+void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
+  // for (auto& road_pair : proto_data_.pb_roads) {
+  //   *(pb_map->add_road()) = road_pair.second;
+  // }
+
+
+  static int64_t lane_cnt = 20000;
+  static int64_t boundary_cnt = 30000;
+
+  for (auto& lane_pair : proto_data_.pb_lanes) {
+    PbLane pb_lane = lane_pair.second;
+    APbLane lane;
+    APbBoundary boundary_left;
+    APbBoundary boundary_right;
+
+    APbPolyline* pl = new APbPolyline;
+    for(auto& seg : pb_lane.central_curve().segment()) {
+      for(auto& point : seg.line_segment().point()) {
+        APbVector3d* p = pl->add_points();
+        p->set_x(point.x());
+        p->set_y(point.y());
+        p->set_z(point.z());
+      }
+    }
+    lane_cnt++;
+    lane.set_id(lane_cnt);
+    lane.set_allocated_polyline(pl);
+    lane.set_turn(static_cast<APbLaneTurn>(pb_lane.turn()));
+    lane.set_type(APbLaneType::Lane_Type_STREET);
+    lane.set_category(APbLaneCategory::Lane_Category_MOTORWAY);
+    // lane.set_road_id();
+    lane.set_left_direction(false);
+    lane.set_right_direction(false);
+    // lane.set_lane_number();
+    lane.set_max_speed(static_cast<int32_t>(pb_lane.speed_limit()*3.6)); // in km / hour
+    lane.set_min_speed(0); // in km / hour
+
+    // lane.set_height();
+
+    APbPolyline* polyline_bl = new APbPolyline;
+    for(auto& seg : pb_lane.left_boundary().curve().segment()) {
+      for(auto& point : seg.line_segment().point()) {
+        APbVector3d* p = polyline_bl->add_points();
+        AINFO << "Point x-" << point.x() << " y-" << point.y();
+        p->set_x(point.x());
+        p->set_y(point.y());
+        p->set_z(point.z());
+      }
+    }
+    boundary_cnt++;
+    boundary_left.set_id(boundary_cnt);
+    boundary_left.set_allocated_polyline(polyline_bl);
+    switch (pb_lane.left_boundary().boundary_type(0).types(0))
+    {
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_CURB:
+      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_PHYSICAL_BLOCK);
+      break;
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_WHITE:
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_YELLOW:
+      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_PASS);
+      break;
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_WHITE:
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_YELLOW:
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOUBLE_YELLOW:
+      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_NO_PASS);
+      break;
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_UNKNOWN:
+      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_PROPERTY_UNKNOWN);
+      break;
+    
+    default:
+      break;
+    }
+    boundary_left.set_color(APbBoundaryColor::Boundary_Color_WHITE);
+    if (pb_lane.left_boundary().virtual_()) {
+      boundary_left.set_type(APbBoundaryType::Boundary_Type_VIRTUAL);
+    } else {
+      boundary_left.set_type(APbBoundaryType::Boundary_Type_REAL);
+    }
+    lane.set_left_boundary_id(boundary_cnt);
+
+    APbPolyline* polyline_br = new APbPolyline;
+    for(auto& seg : pb_lane.left_boundary().curve().segment()) {
+      for(auto& point : seg.line_segment().point()) {
+        APbVector3d* p = polyline_br->add_points();
+        p->set_x(point.x());
+        p->set_y(point.y());
+        p->set_z(point.z());
+      }
+    }
+    boundary_cnt++;
+    boundary_right.set_id(boundary_cnt);
+    boundary_right.set_allocated_polyline(polyline_br);
+    switch (pb_lane.right_boundary().boundary_type(0).types(0))
+    {
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_CURB:
+      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_PHYSICAL_BLOCK);
+      break;
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_WHITE:
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_YELLOW:
+      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_PASS);
+      break;
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_WHITE:
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_YELLOW:
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOUBLE_YELLOW:
+      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_NO_PASS);
+      break;
+    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_UNKNOWN:
+      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_PROPERTY_UNKNOWN);
+      break;
+    
+    default:
+      break;
+    }
+    boundary_right.set_color(APbBoundaryColor::Boundary_Color_WHITE);
+    if (pb_lane.right_boundary().virtual_()) {
+      boundary_right.set_type(APbBoundaryType::Boundary_Type_VIRTUAL);
+    } else {
+      boundary_right.set_type(APbBoundaryType::Boundary_Type_REAL);
+    }
+    lane.set_right_boundary_id(boundary_cnt);
+
+    pb_map.mutable_lanes()->insert({lane.id(), lane});
+    pb_map.mutable_boundaries()->insert({boundary_left.id(), boundary_left});
+    pb_map.mutable_boundaries()->insert({boundary_right.id(), boundary_right});
+
+  }
+  // for (auto& crosswalk_pair : proto_data_.pb_crosswalks) {
+  //   *(pb_map->add_crosswalk()) = crosswalk_pair.second;
+  // }
+  // for (auto& parking_space_pair : proto_data_.pb_parking_spaces) {
+  //   *(pb_map->add_parking_space()) = parking_space_pair.second;
+  // }
+  // for (auto& clear_area_pair : proto_data_.pb_clear_areas) {
+  //   *(pb_map->add_clear_area()) = clear_area_pair.second;
+  // }
+  // for (auto& speed_bump_pair : proto_data_.pb_speed_bumps) {
+  //   *(pb_map->add_speed_bump()) = speed_bump_pair.second;
+  // }
+  // for (auto& signal_pair : proto_data_.pb_signals) {
+  //   *(pb_map->add_signal()) = signal_pair.second;
+  // }
+  // for (auto& stop_sign_pair : proto_data_.pb_stop_signs) {
+  //   *(pb_map->add_stop_sign()) = stop_sign_pair.second;
+  // }
+  // for (auto& yield_sign_pair : proto_data_.pb_yield_signs) {
+  //   *(pb_map->add_yield()) = yield_sign_pair.second;
+  // }
+  // for (auto& junction_pair : proto_data_.pb_junctions) {
+  //   *(pb_map->add_junction()) = junction_pair.second;
+  // }
+  // for (auto& overlap_pair : proto_data_.pb_overlaps) {
+  //   *(pb_map->add_overlap()) = overlap_pair.second;
+  // }
+
+  AINFO << "hdmap statistics: lanes-" << pb_map.mutable_lanes()->size()
+        << " boundary-" << pb_map.mutable_boundaries()->size();
+}
+
 void ProtoOrganizer::OutputData(apollo::hdmap::Map* pb_map) {
   for (auto& road_pair : proto_data_.pb_roads) {
     *(pb_map->add_road()) = road_pair.second;

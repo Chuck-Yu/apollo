@@ -1,0 +1,254 @@
+// Copyright 2020 Allride.ai. All Rights Reserved.
+// Author: Chunzhi Hu (chunzhi.hu@allride.ai)
+// Author: Yinzi Chen (yinzic@kaizhe.ai)
+
+syntax = "proto3";
+
+package allride.hdmap;
+
+// option go_package = "allride.ai/proto/map/base_map";
+import "modules/map/proto/geometry.proto";
+
+message Boundary {
+  int64 id = 1;
+  math.Polyline polyline = 2;
+
+  enum Property {
+    PROPERTY_UNKNOWN = 0;
+    PHYSICAL_BLOCK = 1;
+    LEGAL_NO_PASS = 2;
+    LEGAL_PASS = 3;
+    LEFT_TO_RIGHT = 4;
+    RIGHT_TO_LEFT = 5;
+  }
+  Property property = 3;
+
+  enum Color {
+    COLOR_UNKNOWN = 0;
+    WHITE = 1;
+    YELLOW = 2;
+  }
+  Color color = 4;
+
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    REAL = 1;
+    VIRTUAL = 2;
+  }
+  Type type = 5;
+
+  repeated int64 lane_ids = 6; // no need to fill in base map
+}
+
+message Lane {
+  int64 id = 1;
+  math.Polyline polyline = 2;
+
+  enum Turn {
+    TURN_UNKNOWN = 0;
+    STRAIGHT = 1;
+    LEFT = 2;
+    RIGHT = 3;
+    UTURN = 4;
+  }
+  Turn turn = 3;
+
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    HIGHWAY = 1;
+    ARTERIAL = 2;
+    STREET = 3; // 1
+    LOCAL = 4;
+    RAMP = 5;
+  }
+  Type type = 4;
+
+  enum Category {
+    CATEGORY_UNKNOWN = 0;
+    MOTORWAY = 1; // 1
+    NON_MOTORWAY = 2;
+    BUS_ONLY = 3;
+    EMERGENCY_LANE = 4; // for emergency parking
+    REVERSIBLE_LANE = 5;
+  }
+  Category category = 5;
+
+  // relation
+  int64 left_boundary_id = 6;
+  int64 right_boundary_id = 7;
+  int64 road_id = 8;
+  bool left_direction = 9; // false: not same direction with centerline  
+  bool right_direction = 10; // false: not same direction with centerline 
+
+  // property
+  int32 lane_number = 11; // lane number, from left to right
+  int32 max_speed = 12; // in km / hour
+  int32 min_speed = 13; // in km / hour
+  double height = 14; // in meter
+}
+
+message Curb {
+  int64 id = 1;
+  math.Polyline polyline = 2;
+
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    ROAD_STONE = 1;
+    TRENCH = 2;
+    GUARD_BAR = 3;
+  }
+  Type type = 3;
+
+  repeated int64 lane_ids = 4; // optional, must fill when confusing (multi-layer)
+}
+
+message Signal {
+  int64 id = 1;
+
+  // D for digit, R for red, Y for yellow, G for green
+  // V for vertical, H for horizontal
+  // order defined as left to right for horizontal, and top to bottom for vertical
+  enum Layout {
+    LAYOUT_UNKNOWN = 0;
+    D = 1; // single digit
+    DD = 2; // double digits
+    RYG = 3; // single signal for Red/Yellow/Green
+    V_R_Y_G = 4; // vertically arranged Red, Yellow, Green from top to bottom
+    H_R_Y_G = 5; // horizontally arranged Red, Yellow, Green from left to right
+    V_R_YD_G = 6; // vertically arranged Red, Yellow/Digit, Green from top to bottom
+    H_R_YD_G = 7; // horizontally arranged Red, Yellow/Digit, Green from left to right
+  }
+  Layout layout = 2;
+
+  enum Direction {
+    DIRECTION_UNKNOWN = 0;
+    STRAIGHT = 1;
+    LEFT = 2;
+    RIGHT = 4;
+    UTURN = 8;
+  }
+  int32 direction = 3;
+
+  math.Vector3d point = 4;
+  double width = 5;
+  double height = 6;
+  int64 pole_id = 7;
+  repeated int64 stop_line_ids = 8;
+  repeated int64 digit_ids = 9;
+}
+
+message WaitingArea {
+  int64 id = 1;
+  math.Vector3d point = 2;
+  int64 first_stop_line_id = 3;
+  int64 second_stop_line_id = 4;
+  repeated int64 lane_ids = 5;
+}
+
+message StopLine {
+  int64 id = 1;
+  math.Polyline polyline = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message Crosswalk {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message ClearZone {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message GreenBelt {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message Bumper {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+
+  //type reference:
+  //https://www.quora.com/Why-arent-all-the-speed-bumps-shaped \
+  //-the-same-way-What-purpose-do-different-shapes-and-sizes-serve
+  enum Type {
+    SPEED_BUMP = 0; //30-90cm width
+    SPEED_HUMP = 1; //3.5-4.3m width
+    SPEED_CUSHION = 2; //several small humps, wide vehicle no need to slow
+    SPEED_TABLE = 3; //flat-topped, long enough for the entire car
+    RUMBLE_STRIP = 4; //warning for slow down through noise and vibration
+  }
+  Type type = 3;
+
+  int32 max_speed = 4; // in km / hour
+  repeated int64 lane_ids = 5; // optional, must fill when confusing (multi-layer)
+}
+
+message WeightSign {
+  int64 id = 1;
+  math.Vector3d point = 2;
+  double weight = 3; // in ton
+}
+
+message SpeedSign {
+  int64 id = 1;
+  math.Vector3d point = 2;
+  int32 min_speed = 3; // in km / hour
+  int32 max_speed = 4; // in km / hour
+}
+
+message HeightSign {
+  int64 id = 1;
+  math.Vector3d point = 2;
+  double max_height = 3; // in meter
+}
+
+message Junction {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message Tunnel {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message Bridge {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message ROI {
+  int64 id = 1;
+  math.Polygon polygon = 2;
+  repeated int64 lane_ids = 3; // optional, must fill when confusing (multi-layer)
+}
+
+message BaseMap {
+  map<int64, Lane> lanes = 1;
+  map<int64, Boundary> boundaries = 2;
+  map<int64, Curb> curbs = 3;
+  map<int64, Signal> signals = 4;
+  map<int64, WaitingArea> waiting_areas = 5;
+  map<int64, StopLine> stop_lines = 6;
+  map<int64, ClearZone> clear_zones = 7;
+  map<int64, Crosswalk> crosswalks = 8;
+  map<int64, GreenBelt> green_belts = 9;
+  map<int64, Bumper> bumpers = 10;
+  map<int64, WeightSign> weight_signs = 11;
+  map<int64, SpeedSign> speed_signs = 12;
+  map<int64, HeightSign> height_signs = 13;
+  map<int64, Junction> junctions = 14;
+  map<int64, Tunnel> tunnels = 15;
+  map<int64, Bridge> bridges = 16;
+  map<int64, ROI> rois = 17;
+}
+

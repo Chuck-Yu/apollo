@@ -25,6 +25,7 @@ limitations under the License.
 #include "modules/common/util/util.h"
 
 #include "modules/map/proto/map.pb.h"
+#include "modules/map/proto/base_map.pb.h"
 #include "modules/map/hdmap/adapter/xml_parser/common_define.h"
 
 namespace apollo {
@@ -55,6 +56,7 @@ class ProtoOrganizer {
   void GetOverlapElements(const std::vector<RoadInternal>& roads,
                           const std::vector<JunctionInternal>& junctions);
   void OutputData(apollo::hdmap::Map* pb_map);
+  void OutputDataAllride(allride::hdmap::BaseMap& pb_map);
 
  private:
   void GetLaneObjectOverlapElements(
@@ -75,6 +77,7 @@ class ProtoOrganizer {
 
  private:
   ProtoData proto_data_;
+  allride::hdmap::BaseMap pb_base_map_;
 };
 
 }  // namespace adapter

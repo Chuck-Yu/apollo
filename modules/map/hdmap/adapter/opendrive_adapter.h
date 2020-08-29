@@ -20,6 +20,7 @@ limitations under the License.
 #include <string>
 
 #include "modules/map/proto/map.pb.h"
+#include "modules/map/proto/base_map.pb.h"
 
 #include "modules/map/hdmap/adapter/coordinate_convert_tool.h"
 #include "modules/map/hdmap/adapter/xml_parser/common_define.h"
@@ -37,6 +38,7 @@ namespace adapter {
 class OpendriveAdapter {
  public:
   static bool LoadData(const std::string& filename, apollo::hdmap::Map* pb_map);
+  static bool LoadData(const std::string& filename, allride::hdmap::BaseMap& pb_map);
 };
 
 }  // namespace adapter

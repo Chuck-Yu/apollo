@@ -20,10 +20,35 @@ limitations under the License.
 #include <vector>
 #include "modules/common/log.h"
 #include "modules/map/proto/map.pb.h"
+#include "modules/map/proto/base_map.pb.h"
 
 namespace apollo {
 namespace hdmap {
 namespace adapter {
+
+using APbBoundary = allride::hdmap::Boundary;
+using APbBoundaryProperty = allride::hdmap::Boundary_Property;
+using APbBoundaryColor = allride::hdmap::Boundary_Color;
+using APbBoundaryType = allride::hdmap::Boundary_Type;
+using APbLane = allride::hdmap::Lane;
+using APbLaneType = allride::hdmap::Lane_Type;
+using APbLaneTurn = allride::hdmap::Lane_Turn;
+using APbLaneCategory = allride::hdmap::Lane_Category;
+using APbCurb = allride::hdmap::Curb;
+using APbCurbType = allride::hdmap::Curb_Type;
+using APbSignal = allride::hdmap::Signal;
+using APbSignalLayout = allride::hdmap::Signal_Layout;
+using APbSignalDirection = allride::hdmap::Signal_Direction;
+using APbWaitingArea = allride::hdmap::WaitingArea;
+using APbStopLine = allride::hdmap::StopLine;
+using APbCrosswalk = allride::hdmap::Crosswalk;
+using APbClearZone = allride::hdmap::ClearZone;
+using APbBumper = allride::hdmap::Bumper;
+using APbBumperType = allride::hdmap::Bumper_Type;
+using APbJunction = allride::hdmap::Junction;
+using APbVector3d = allride::math::Vector3d;
+using APbPolyline = allride::math::Polyline;
+using APbPolygon = allride::math::Polygon;
 
 using PbHeader = apollo::hdmap::Header;
 using PbRoad = apollo::hdmap::Road;
