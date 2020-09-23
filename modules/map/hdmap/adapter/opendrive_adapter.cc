@@ -71,8 +71,9 @@ bool OpendriveAdapter::LoadData(const std::string& filename,
 }
 
 bool OpendriveAdapter::LoadData(const std::string& filename,
-                                allride::hdmap::BaseMap& pb_map) {
-  // CHECK_NOTNULL(pb_map);
+                                apollo::hdmap::Map* pb_map,
+                                allride::hdmap::BaseMap& base_map) {
+  CHECK_NOTNULL(pb_map);
 
   tinyxml2::XMLDocument document;
   if (document.LoadFile(filename.c_str()) != tinyxml2::XML_SUCCESS) {
@@ -84,16 +85,16 @@ bool OpendriveAdapter::LoadData(const std::string& filename,
   const tinyxml2::XMLElement* root_node = document.RootElement();
   CHECK(root_node != nullptr);
   // header
-  // PbHeader* map_header = pb_map->mutable_header();
-  // Status status = HeaderXmlParser::Parse(*root_node, map_header);
-  // if (!status.ok()) {
-    // AERROR << "fail to parse opendrive header, " << status.error_message();
-    // return false;
-  // }
+  PbHeader* map_header = pb_map->mutable_header();
+  Status status = HeaderXmlParser::Parse(*root_node, map_header);
+  if (!status.ok()) {
+    AERROR << "fail to parse opendrive header, " << status.error_message();
+    return false;
+  }
 
   // roads
   std::vector<RoadInternal> roads;
-  Status status = RoadsXmlParser::Parse(*root_node, &roads);
+  status = RoadsXmlParser::Parse(*root_node, &roads);
   if (!status.ok()) {
     AERROR << "fail to parse opendrive road, " << status.error_message();
     return false;
@@ -111,7 +112,8 @@ bool OpendriveAdapter::LoadData(const std::string& filename,
   proto_organizer.GetRoadElements(&roads);
   proto_organizer.GetJunctionElements(junctions);
   proto_organizer.GetOverlapElements(roads, junctions);
-  proto_organizer.OutputDataAllride(pb_map);
+  proto_organizer.OutputData(pb_map);
+  proto_organizer.OutputDataAllride(base_map);
 
   return true;
 }

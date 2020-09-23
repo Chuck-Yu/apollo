@@ -38,7 +38,7 @@ namespace adapter {
 class OpendriveAdapter {
  public:
   static bool LoadData(const std::string& filename, apollo::hdmap::Map* pb_map);
-  static bool LoadData(const std::string& filename, allride::hdmap::BaseMap& pb_map);
+  static bool LoadData(const std::string& filename, apollo::hdmap::Map* pb_map, allride::hdmap::BaseMap& base_map);
 };
 
 }  // namespace adapter

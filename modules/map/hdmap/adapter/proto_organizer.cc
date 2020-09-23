@@ -357,9 +357,9 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
   //   *(pb_map->add_road()) = road_pair.second;
   // }
 
-
   static int64_t lane_cnt = 20000;
   static int64_t boundary_cnt = 30000;
+  static int64_t junction_cnt = 40000;
 
   for (auto& lane_pair : proto_data_.pb_lanes) {
     PbLane pb_lane = lane_pair.second;
@@ -368,14 +368,20 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
     APbBoundary boundary_right;
 
     APbPolyline* pl = new APbPolyline;
-    for(auto& seg : pb_lane.central_curve().segment()) {
-      for(auto& point : seg.line_segment().point()) {
-        APbVector3d* p = pl->add_points();
-        p->set_x(point.x());
-        p->set_y(point.y());
-        p->set_z(point.z());
-      }
+    for (auto& point :
+         pb_lane.central_curve().segment(0).line_segment().point()) {
+      APbVector3d* p = pl->add_points();
+      p->set_x(point.x());
+      p->set_y(point.y());
+      p->set_z(point.z());
     }
+    // AINFO << "X: " << pl->points().begin()->x() << " Y: " <<
+    // pl->points().end()->x();
+    auto lane_direction =
+        pl->points(0).x() - pl->points(pl->points_size() - 1).x();
+    // auto lane_direction =
+    // pb_lane.central_curve().segment(0).line_segment().point().begin()->x() -
+    // pb_lane.central_curve().segment(0).line_segment().point().end()->x();
     lane_cnt++;
     lane.set_id(lane_cnt);
     lane.set_allocated_polyline(pl);
@@ -383,47 +389,55 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
     lane.set_type(APbLaneType::Lane_Type_STREET);
     lane.set_category(APbLaneCategory::Lane_Category_MOTORWAY);
     // lane.set_road_id();
-    lane.set_left_direction(false);
-    lane.set_right_direction(false);
+    // lane.set_right_direction(1);
     // lane.set_lane_number();
-    lane.set_max_speed(static_cast<int32_t>(pb_lane.speed_limit()*3.6)); // in km / hour
-    lane.set_min_speed(0); // in km / hour
+    lane.set_max_speed(
+        static_cast<int32_t>(pb_lane.speed_limit() * 3.6));  // in km / hour
+    lane.set_min_speed(0);                                   // in km / hour
 
     // lane.set_height();
 
     APbPolyline* polyline_bl = new APbPolyline;
-    for(auto& seg : pb_lane.left_boundary().curve().segment()) {
-      for(auto& point : seg.line_segment().point()) {
+    for (auto& seg : pb_lane.left_boundary().curve().segment()) {
+      for (auto& point : seg.line_segment().point()) {
         APbVector3d* p = polyline_bl->add_points();
-        AINFO << "Point x-" << point.x() << " y-" << point.y();
         p->set_x(point.x());
         p->set_y(point.y());
         p->set_z(point.z());
       }
     }
+    auto left_boundary =
+        polyline_bl->points(0).x() -
+        polyline_bl->points(polyline_bl->points_size() - 1).x();
+
+    lane.set_left_direction(lane_direction * left_boundary >
+                            0);  // same direction: true
     boundary_cnt++;
     boundary_left.set_id(boundary_cnt);
     boundary_left.set_allocated_polyline(polyline_bl);
-    switch (pb_lane.left_boundary().boundary_type(0).types(0))
-    {
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_CURB:
-      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_PHYSICAL_BLOCK);
-      break;
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_WHITE:
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_YELLOW:
-      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_PASS);
-      break;
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_WHITE:
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_YELLOW:
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOUBLE_YELLOW:
-      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_NO_PASS);
-      break;
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_UNKNOWN:
-      boundary_left.set_property(APbBoundaryProperty::Boundary_Property_PROPERTY_UNKNOWN);
-      break;
-    
-    default:
-      break;
+    switch (pb_lane.left_boundary().boundary_type(0).types(0)) {
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_CURB:
+        boundary_left.set_property(
+            APbBoundaryProperty::Boundary_Property_PHYSICAL_BLOCK);
+        break;
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_WHITE:
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_YELLOW:
+        boundary_left.set_property(
+            APbBoundaryProperty::Boundary_Property_LEGAL_PASS);
+        break;
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_WHITE:
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_YELLOW:
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOUBLE_YELLOW:
+        boundary_left.set_property(
+            APbBoundaryProperty::Boundary_Property_LEGAL_NO_PASS);
+        break;
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_UNKNOWN:
+        boundary_left.set_property(
+            APbBoundaryProperty::Boundary_Property_PROPERTY_UNKNOWN);
+        break;
+
+      default:
+        break;
     }
     boundary_left.set_color(APbBoundaryColor::Boundary_Color_WHITE);
     if (pb_lane.left_boundary().virtual_()) {
@@ -434,37 +448,49 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
     lane.set_left_boundary_id(boundary_cnt);
 
     APbPolyline* polyline_br = new APbPolyline;
-    for(auto& seg : pb_lane.left_boundary().curve().segment()) {
-      for(auto& point : seg.line_segment().point()) {
+    for (auto& seg : pb_lane.right_boundary().curve().segment()) {
+      for (auto& point : seg.line_segment().point()) {
         APbVector3d* p = polyline_br->add_points();
         p->set_x(point.x());
         p->set_y(point.y());
         p->set_z(point.z());
       }
     }
+    auto right_boundary =
+        polyline_br->points(0).x() -
+        polyline_br->points(polyline_br->points_size() - 1).x();
+    // auto right_boundary =
+    // pb_lane.right_boundary().curve().segment(0).line_segment().point().begin()->x()
+    // -
+    // pb_lane.right_boundary().curve().segment(0).line_segment().point().end()->x();
+    lane.set_right_direction(lane_direction * right_boundary >
+                             0);  // same direction: true
     boundary_cnt++;
     boundary_right.set_id(boundary_cnt);
     boundary_right.set_allocated_polyline(polyline_br);
-    switch (pb_lane.right_boundary().boundary_type(0).types(0))
-    {
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_CURB:
-      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_PHYSICAL_BLOCK);
-      break;
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_WHITE:
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_YELLOW:
-      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_PASS);
-      break;
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_WHITE:
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_YELLOW:
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOUBLE_YELLOW:
-      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_LEGAL_NO_PASS);
-      break;
-    case PbLaneBoundaryTypeType::LaneBoundaryType_Type_UNKNOWN:
-      boundary_right.set_property(APbBoundaryProperty::Boundary_Property_PROPERTY_UNKNOWN);
-      break;
-    
-    default:
-      break;
+    switch (pb_lane.right_boundary().boundary_type(0).types(0)) {
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_CURB:
+        boundary_right.set_property(
+            APbBoundaryProperty::Boundary_Property_PHYSICAL_BLOCK);
+        break;
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_WHITE:
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOTTED_YELLOW:
+        boundary_right.set_property(
+            APbBoundaryProperty::Boundary_Property_LEGAL_PASS);
+        break;
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_WHITE:
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_SOLID_YELLOW:
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_DOUBLE_YELLOW:
+        boundary_right.set_property(
+            APbBoundaryProperty::Boundary_Property_LEGAL_NO_PASS);
+        break;
+      case PbLaneBoundaryTypeType::LaneBoundaryType_Type_UNKNOWN:
+        boundary_right.set_property(
+            APbBoundaryProperty::Boundary_Property_PROPERTY_UNKNOWN);
+        break;
+
+      default:
+        break;
     }
     boundary_right.set_color(APbBoundaryColor::Boundary_Color_WHITE);
     if (pb_lane.right_boundary().virtual_()) {
@@ -473,11 +499,22 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
       boundary_right.set_type(APbBoundaryType::Boundary_Type_REAL);
     }
     lane.set_right_boundary_id(boundary_cnt);
+    if (!lane.left_direction() || !lane.right_direction()) {
+      lane.set_left_boundary_id(boundary_cnt);
+      lane.set_right_boundary_id(boundary_cnt - 1);
+      auto tmp_direction = lane.left_direction();
+      lane.set_left_direction(lane.right_direction());
+      lane.set_right_direction(tmp_direction);
+    }
+    if (lane_cnt == 20130) {
+      AINFO << "Lane direction: " << lane_direction
+            << " Left direction: " << left_boundary
+            << " Right direction: " << right_boundary;
+    }
 
     pb_map.mutable_lanes()->insert({lane.id(), lane});
     pb_map.mutable_boundaries()->insert({boundary_left.id(), boundary_left});
     pb_map.mutable_boundaries()->insert({boundary_right.id(), boundary_right});
-
   }
   // for (auto& crosswalk_pair : proto_data_.pb_crosswalks) {
   //   *(pb_map->add_crosswalk()) = crosswalk_pair.second;
@@ -500,15 +537,30 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
   // for (auto& yield_sign_pair : proto_data_.pb_yield_signs) {
   //   *(pb_map->add_yield()) = yield_sign_pair.second;
   // }
-  // for (auto& junction_pair : proto_data_.pb_junctions) {
-  //   *(pb_map->add_junction()) = junction_pair.second;
-  // }
+  for (auto& junction_pair : proto_data_.pb_junctions) {
+    auto pb_junc = junction_pair.second;
+
+    APbJunction junc;
+    APbPolygon* polygon = new APbPolygon;
+    for (auto& point : pb_junc.polygon().point()) {
+      APbVector3d* p = polygon->add_points();
+      p->set_x(point.x());
+      p->set_y(point.y());
+      p->set_z(point.z());
+    }
+    junction_cnt++;
+    junc.set_id(junction_cnt);
+    junc.set_allocated_polygon(polygon);
+
+    pb_map.mutable_junctions()->insert({junc.id(), junc});
+  }
   // for (auto& overlap_pair : proto_data_.pb_overlaps) {
   //   *(pb_map->add_overlap()) = overlap_pair.second;
   // }
 
   AINFO << "hdmap statistics: lanes-" << pb_map.mutable_lanes()->size()
-        << " boundary-" << pb_map.mutable_boundaries()->size();
+        << " boundary-" << pb_map.mutable_boundaries()->size() << " junction-"
+        << pb_map.mutable_junctions()->size();
 }
 
 void ProtoOrganizer::OutputData(apollo::hdmap::Map* pb_map) {
