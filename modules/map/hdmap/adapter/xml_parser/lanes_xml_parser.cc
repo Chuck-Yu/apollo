@@ -23,7 +23,7 @@ limitations under the License.
 namespace {
 double ToMPS(double speed) { return speed * 1000.0 / 3600.0; }
 bool IsReferenceLane(int lane_id) { return lane_id == 0; }
-};
+};  // namespace
 
 namespace apollo {
 namespace hdmap {
@@ -45,8 +45,7 @@ Status LanesXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
     std::string section_id = std::to_string(++section_cnt);
     section_internal.id = section_id;
     section_internal.section.mutable_id()->set_id(section_id);
-    RETURN_IF_ERROR(ParseLaneSection(*sub_node,
-                                     &section_internal.lanes));
+    RETURN_IF_ERROR(ParseLaneSection(*sub_node, &section_internal.lanes));
     RETURN_IF_ERROR(ParseSectionBoundary(
         *sub_node,
         section_internal.section.mutable_boundary()->mutable_outer_polygon()));
@@ -55,6 +54,184 @@ Status LanesXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
     sub_node = sub_node->NextSiblingElement("laneSection");
   }
 
+  CHECK_GT(sections->size(), 0);
+
+  return Status::OK();
+}
+
+Status LanesXmlParser::JuncParse(const tinyxml2::XMLElement& xml_node,
+                                 const std::string& road_id,
+                                 std::vector<RoadSectionInternal>* sections) {
+  std::vector<RoadSectionInternal> sections_tmp;
+  CHECK_NOTNULL(sections);
+  const auto lanes_node = xml_node.FirstChildElement("lanes");
+  CHECK_NOTNULL(lanes_node);
+  const tinyxml2::XMLElement* sub_node =
+      lanes_node->FirstChildElement("laneSection");
+  CHECK_NOTNULL(sub_node);
+
+  size_t section_cnt = 0;
+  while (sub_node) {
+    RoadSectionInternal section_internal;
+    std::string section_id = std::to_string(++section_cnt);
+    section_internal.id = section_id;
+    section_internal.section.mutable_id()->set_id(section_id);
+    RETURN_IF_ERROR(ParseLaneSection(*sub_node, &section_internal.lanes));
+    RETURN_IF_ERROR(ParseSectionBoundary(
+        *sub_node,
+        section_internal.section.mutable_boundary()->mutable_outer_polygon()));
+    sections_tmp.push_back(section_internal);
+
+    sub_node = sub_node->NextSiblingElement("laneSection");
+  }
+
+  std::unordered_map<std::string, LaneInternal> junc_lanes;
+  RoadSectionInternal junc_sections;
+  std::string id = std::to_string(1);
+  junc_sections.id = id;
+  junc_sections.section.mutable_id()->set_id(id);
+  for (auto& section : sections_tmp) {
+    for (auto& lane : section.lanes) {
+      std::string lane_id = lane.lane.lane_id().id();
+      if (junc_lanes.find(lane_id) == junc_lanes.end()) {
+        junc_lanes[lane_id] = lane;
+      } else {
+        LaneInternal& lane_int = junc_lanes[lane_id];
+        PbLane& lane_tmp = lane_int.lane;
+        // PbLane lane_tmp = junc_lanes[lane_id].lane;
+        // PbCurve* central_curve_in =
+        // lane_tmp.mutable_central_curve();
+        // PbCurveSegment* central_seg = central_curve_in->mutable_segment();
+        PbLineSegment central_curve_in =
+            lane.lane.central_curve().segment(0).line_segment();
+        PbLineSegment* central_curve_org = lane_tmp.mutable_central_curve()
+                                               ->mutable_segment(0)
+                                               ->mutable_line_segment();
+        PbLineSegment left_boundary_in =
+            lane.lane.left_boundary().curve().segment(0).line_segment();
+        PbLineSegment* left_boundary_org = lane_tmp.mutable_left_boundary()
+                                               ->mutable_curve()
+                                               ->mutable_segment(0)
+                                               ->mutable_line_segment();
+        PbLineSegment right_boundary_in =
+            lane.lane.right_boundary().curve().segment(0).line_segment();
+        PbLineSegment* right_boundary_org = lane_tmp.mutable_right_boundary()
+                                                ->mutable_curve()
+                                                ->mutable_segment(0)
+                                                ->mutable_line_segment();
+        // PbLineSegment* curve_tmp =
+        // lane_tmp.central_curve().segment(0).line_segment();
+        // central_curve
+        auto start_point = central_curve_org->point(0);
+        if (std::abs(
+                central_curve_in.point(central_curve_in.point_size() - 1).x() -
+                start_point.x()) < 1.0 &&
+            std::abs(
+                central_curve_in.point(central_curve_in.point_size() - 1).y() -
+                start_point.y()) < 1.0) {
+          for (size_t i = 1; i < central_curve_org->point_size(); i++) {
+            PbPoint3D* p = central_curve_in.add_point();
+            p->set_x(central_curve_org->point(i).x());
+            p->set_y(central_curve_org->point(i).y());
+            p->set_z(central_curve_org->point(i).z());
+          }
+          *central_curve_org = central_curve_in;
+        } else {
+          for (size_t i = 1; i < central_curve_in.point_size(); i++) {
+            PbPoint3D* p = central_curve_org->add_point();
+            p->set_x(central_curve_in.point(i).x());
+            p->set_y(central_curve_in.point(i).y());
+            p->set_z(central_curve_in.point(i).z());
+          }
+        }
+
+        start_point = left_boundary_org->point(0);
+        if (std::abs(
+                left_boundary_in.point(left_boundary_in.point_size() - 1).x() -
+                start_point.x()) < 1.0 &&
+            std::abs(
+                left_boundary_in.point(left_boundary_in.point_size() - 1).y() -
+                start_point.y()) < 1.0) {
+          for (size_t i = 1; i < left_boundary_org->point_size(); i++) {
+            PbPoint3D* p = left_boundary_in.add_point();
+            p->set_x(left_boundary_org->point(i).x());
+            p->set_y(left_boundary_org->point(i).y());
+            p->set_z(left_boundary_org->point(i).z());
+          }
+          *left_boundary_org = left_boundary_in;
+        } else {
+          for (size_t i = 1; i < left_boundary_in.point_size(); i++) {
+            PbPoint3D* p = left_boundary_org->add_point();
+            p->set_x(left_boundary_in.point(i).x());
+            p->set_y(left_boundary_in.point(i).y());
+            p->set_z(left_boundary_in.point(i).z());
+          }
+        }
+
+        start_point = right_boundary_org->point(0);
+        if (std::abs(right_boundary_in.point(right_boundary_in.point_size() - 1)
+                         .x() -
+                     start_point.x()) < 1.0 &&
+            std::abs(right_boundary_in.point(right_boundary_in.point_size() - 1)
+                         .y() -
+                     start_point.y()) < 1.0) {
+          for (size_t i = 1; i < right_boundary_org->point_size(); i++) {
+            PbPoint3D* p = right_boundary_in.add_point();
+            p->set_x(right_boundary_org->point(i).x());
+            p->set_y(right_boundary_org->point(i).y());
+            p->set_z(right_boundary_org->point(i).z());
+          }
+          *right_boundary_org = right_boundary_in;
+        } else {
+          for (size_t i = 1; i < right_boundary_in.point_size(); i++) {
+            PbPoint3D* p = right_boundary_org->add_point();
+            p->set_x(right_boundary_in.point(i).x());
+            p->set_y(right_boundary_in.point(i).y());
+            p->set_z(right_boundary_in.point(i).z());
+          }
+        }
+
+        // auto end_point =
+        //     central_curve_org->point(central_curve_org->point_size() - 1);
+        // for (size_t i = 0; i < central_curve_in.point_size(); i++) {
+        //   if ((central_curve_in.point(i).x() == end_point.x()) &&
+        //       (central_curve_in.point(i).y() == end_point.y())) {
+        //         continue;
+        //       }
+        //   // central_curve
+        //   PbPoint3D* p = central_curve_org->add_point();
+        //   p->set_x(central_curve_in.point(i).x());
+        //   p->set_y(central_curve_in.point(i).y());
+        //   p->set_z(central_curve_in.point(i).z());
+        //   // left_boundary
+        //   PbPoint3D* p_lb = left_boundary_org->add_point();
+        //   p_lb->set_x(left_boundary_in.point(i).x());
+        //   p_lb->set_y(left_boundary_in.point(i).y());
+        //   p_lb->set_z(left_boundary_in.point(i).z());
+        //   // right_boundary
+        //   PbPoint3D* p_rb = right_boundary_org->add_point();
+        //   p_rb->set_x(right_boundary_in.point(i).x());
+        //   p_rb->set_y(right_boundary_in.point(i).y());
+        //   p_rb->set_z(right_boundary_in.point(i).z());
+        // }
+        // lane_tmp.central_curve().segment(0).set_allocated_line_segment(
+        //     &central_curve_org);
+        // lane_tmp.left_boundary().curve().segment(0).set_allocated_line_segment(
+        //     &left_boundary_org);
+        // lane_tmp.right_boundary().curve().segment(0).set_allocated_line_segment(
+        //     &right_boundary_org);
+      }
+    }
+  }
+
+  std::unordered_map<std::string, LaneInternal>::iterator iter;
+  std::vector<LaneInternal> lane_vec;
+  for (iter = junc_lanes.begin(); iter != junc_lanes.end(); ++iter) {
+    lane_vec.push_back(iter->second);
+  }
+  junc_sections.lanes = lane_vec;
+
+  sections->push_back(junc_sections);
   CHECK_GT(sections->size(), 0);
 
   return Status::OK();
@@ -184,6 +361,7 @@ Status LanesXmlParser::ParseLane(const tinyxml2::XMLElement& xml_node,
     std::string err_msg = "Error parse lane uid";
     return Status(apollo::common::ErrorCode::HDMAP_DATA_ERROR, err_msg);
   }
+  lane->mutable_lane_id()->set_id(std::to_string(id));
   lane->mutable_id()->set_id(lane_id);
 
   // lane type
@@ -218,7 +396,7 @@ Status LanesXmlParser::ParseLane(const tinyxml2::XMLElement& xml_node,
     bool is_virtual = false;
     std::string virtual_border = "FALSE";
     checker = UtilXmlParser::QueryStringAttribute(*sub_node, "virtual",
-            &virtual_border);
+                                                  &virtual_border);
     if (checker == tinyxml2::XML_SUCCESS) {
       if (virtual_border == "TRUE") {
         is_virtual = true;
@@ -574,8 +752,8 @@ Status LanesXmlParser::ParseLaneOverlapGroup(
       std::string lane_id;
       double start_s = 0.0;
       double end_s = 0.0;
-      int checker = UtilXmlParser::QueryStringAttribute(*sub_node, "id",
-                                                   &lane_id);
+      int checker =
+          UtilXmlParser::QueryStringAttribute(*sub_node, "id", &lane_id);
       checker += sub_node->QueryDoubleAttribute("startOffset", &start_s);
       checker += sub_node->QueryDoubleAttribute("endOffset", &end_s);
       if (checker != tinyxml2::XML_SUCCESS) {
@@ -676,8 +854,8 @@ void LanesXmlParser::ParseLaneLink(const tinyxml2::XMLElement& xml_node,
       xml_node.FirstChildElement("predecessor");
   while (sub_node) {
     std::string lane_id;
-    int checker = UtilXmlParser::QueryStringAttribute(*sub_node, "id",
-                                                    &lane_id);
+    int checker =
+        UtilXmlParser::QueryStringAttribute(*sub_node, "id", &lane_id);
     if (checker == tinyxml2::XML_SUCCESS) {
       PbID* pb_lane_id = lane->add_predecessor_id();
       pb_lane_id->set_id(lane_id);
@@ -688,8 +866,8 @@ void LanesXmlParser::ParseLaneLink(const tinyxml2::XMLElement& xml_node,
   sub_node = xml_node.FirstChildElement("successor");
   while (sub_node) {
     std::string lane_id;
-    int checker = UtilXmlParser::QueryStringAttribute(*sub_node, "id",
-                                                    &lane_id);
+    int checker =
+        UtilXmlParser::QueryStringAttribute(*sub_node, "id", &lane_id);
     if (checker == tinyxml2::XML_SUCCESS) {
       PbID* pb_lane_id = lane->add_successor_id();
       pb_lane_id->set_id(lane_id);
@@ -701,8 +879,8 @@ void LanesXmlParser::ParseLaneLink(const tinyxml2::XMLElement& xml_node,
     std::string side;
     std::string direction;
     std::string lane_id;
-    int checker = UtilXmlParser::QueryStringAttribute(*sub_node, "id",
-                                                   &lane_id);
+    int checker =
+        UtilXmlParser::QueryStringAttribute(*sub_node, "id", &lane_id);
     checker += UtilXmlParser::QueryStringAttribute(*sub_node, "side", &side);
     checker +=
         UtilXmlParser::QueryStringAttribute(*sub_node, "direction", &direction);

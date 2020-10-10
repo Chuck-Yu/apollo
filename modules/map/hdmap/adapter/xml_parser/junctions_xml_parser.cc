@@ -28,7 +28,8 @@ namespace hdmap {
 namespace adapter {
 
 Status JunctionsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
-                                 std::vector<JunctionInternal>* junctions) {
+                                 std::vector<JunctionInternal>* junctions,
+                                 std::unordered_map<std::string, std::vector<PbPoint3D>> junc_points) {
   const tinyxml2::XMLElement* junction_node =
       xml_node.FirstChildElement("junction");
   while (junction_node) {
@@ -41,6 +42,16 @@ Status JunctionsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
       return Status(apollo::common::ErrorCode::HDMAP_DATA_ERROR, err_msg);
     }
 
+    // connection
+    // const tinyxml2::XMLElement* road_node = 
+    //   junction_node->FirstChildElement("connection");
+    // while (road_node) {
+    //   std::string road_id;
+    //   UtilXmlParser::QueryStringAttribute(*road_node, "connectingRoad", &road_id);
+
+    //   road_node = road_node->NextSiblingElement("connection");
+    // }
+
     // outline
     const tinyxml2::XMLElement* sub_node =
         junction_node->FirstChildElement("outline");
@@ -52,7 +63,21 @@ Status JunctionsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
     PbJunction junction;
     junction.mutable_id()->set_id(junction_id);
     PbPolygon* polygon = junction.mutable_polygon();
-    RETURN_IF_ERROR(UtilXmlParser::ParseOutline(*sub_node, polygon));
+    PbPolygon* polygon_tmp = new PbPolygon;
+    RETURN_IF_ERROR(UtilXmlParser::ParseOutline(*sub_node, polygon_tmp));
+
+    for (auto& p : polygon_tmp->point()) {
+      for (auto junc_point : junc_points[junction_id]) {
+        if (std::abs(p.x() - junc_point.x()) < 1.0 &&
+            std::abs(p.y() - junc_point.y()) < 1.0) {
+              PbPoint3D* pt = polygon->add_point();
+              pt->set_x(junc_point.x());
+              pt->set_y(junc_point.y());
+              pt->set_z(junc_point.z());
+              break;
+            }
+      }
+    }
 
     JunctionInternal junction_internal;
     junction_internal.junction = junction;

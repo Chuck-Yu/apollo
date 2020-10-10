@@ -45,9 +45,10 @@ bool OpendriveAdapter::LoadData(const std::string& filename,
     return false;
   }
 
+  std::unordered_map<std::string, std::vector<PbPoint3D>> junc_points;
   // roads
   std::vector<RoadInternal> roads;
-  status = RoadsXmlParser::Parse(*root_node, &roads);
+  status = RoadsXmlParser::Parse(*root_node, &roads, junc_points);
   if (!status.ok()) {
     AERROR << "fail to parse opendrive road, " << status.error_message();
     return false;
@@ -55,7 +56,7 @@ bool OpendriveAdapter::LoadData(const std::string& filename,
 
   // junction
   std::vector<JunctionInternal> junctions;
-  status = JunctionsXmlParser::Parse(*root_node, &junctions);
+  status = JunctionsXmlParser::Parse(*root_node, &junctions, junc_points);
   if (!status.ok()) {
     AERROR << "fail to parse opendrive junction, " << status.error_message();
     return false;
@@ -92,9 +93,10 @@ bool OpendriveAdapter::LoadData(const std::string& filename,
     return false;
   }
 
+  std::unordered_map<std::string, std::vector<PbPoint3D>> junc_points;
   // roads
   std::vector<RoadInternal> roads;
-  status = RoadsXmlParser::Parse(*root_node, &roads);
+  status = RoadsXmlParser::Parse(*root_node, &roads, junc_points);
   if (!status.ok()) {
     AERROR << "fail to parse opendrive road, " << status.error_message();
     return false;
@@ -102,7 +104,7 @@ bool OpendriveAdapter::LoadData(const std::string& filename,
 
   // junction
   std::vector<JunctionInternal> junctions;
-  status = JunctionsXmlParser::Parse(*root_node, &junctions);
+  status = JunctionsXmlParser::Parse(*root_node, &junctions, junc_points);
   if (!status.ok()) {
     AERROR << "fail to parse opendrive junction, " << status.error_message();
     return false;

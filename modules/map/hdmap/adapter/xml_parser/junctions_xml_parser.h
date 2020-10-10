@@ -31,7 +31,8 @@ namespace adapter {
 class JunctionsXmlParser {
  public:
   static Status Parse(const tinyxml2::XMLElement& xml_node,
-                      std::vector<JunctionInternal>* junctions);
+                      std::vector<JunctionInternal>* junctions,
+                      std::unordered_map<std::string, std::vector<PbPoint3D>> junc_points);
 };
 
 }  // namespace adapter

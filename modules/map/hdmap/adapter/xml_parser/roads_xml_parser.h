@@ -31,7 +31,9 @@ namespace adapter {
 class RoadsXmlParser {
  public:
   static Status Parse(const tinyxml2::XMLElement& xml_node,
-                      std::vector<RoadInternal>* roads);
+                      std::vector<RoadInternal>* roads,
+                      std::unordered_map<std::string, std::vector<PbPoint3D>>& junc_points);
+  
 };
 
 }  // namespace adapter

@@ -32,6 +32,9 @@ class LanesXmlParser {
   static Status Parse(const tinyxml2::XMLElement& xml_node,
                       const std::string& road_id,
                       std::vector<RoadSectionInternal>* sections);
+  static Status JuncParse(const tinyxml2::XMLElement& xml_node,
+                      const std::string& road_id,
+                      std::vector<RoadSectionInternal>* sections);
 
  private:
   static Status ParseLaneSection(const tinyxml2::XMLElement& xml_node,

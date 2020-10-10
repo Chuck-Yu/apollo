@@ -12,12 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 =========================================================================*/
+#include "modules/map/hdmap/adapter/xml_parser/roads_xml_parser.h"
+
 #include <string>
 #include <vector>
 
 #include "modules/map/hdmap/adapter/xml_parser/lanes_xml_parser.h"
 #include "modules/map/hdmap/adapter/xml_parser/objects_xml_parser.h"
-#include "modules/map/hdmap/adapter/xml_parser/roads_xml_parser.h"
 #include "modules/map/hdmap/adapter/xml_parser/signals_xml_parser.h"
 #include "modules/map/hdmap/adapter/xml_parser/util_xml_parser.h"
 
@@ -33,9 +34,11 @@ namespace hdmap {
 namespace adapter {
 
 Status RoadsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
-                             std::vector<RoadInternal>* roads) {
+                             std::vector<RoadInternal>* roads,
+                             std::unordered_map<std::string, std::vector<PbPoint3D>>& junc_points) {
   CHECK_NOTNULL(roads);
 
+  // std::unordered_map<std::string, std::vector<PbPoint3D>> junc_points;
   auto road_node = xml_node.FirstChildElement("road");
   while (road_node) {
     // road attributes
@@ -53,10 +56,41 @@ Status RoadsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
     road_internal.road.mutable_id()->set_id(id);
     if (IsRoadBelongToJunction(junction_id)) {
       road_internal.road.mutable_junction_id()->set_id(junction_id);
+      RETURN_IF_ERROR(LanesXmlParser::JuncParse(*road_node, road_internal.id,
+                                                &road_internal.sections));
+      // AINFO << "Junction...";
+      auto section = road_internal.sections[0];
+      if (junc_points.find(junction_id) == junc_points.end()) {
+        std::vector<PbPoint3D> points;
+        for (auto lane : section.lanes) {
+          PbLineSegment left_line =
+              lane.lane.left_boundary().curve().segment(0).line_segment();
+          PbLineSegment right_line =
+              lane.lane.right_boundary().curve().segment(0).line_segment();
+          points.push_back(left_line.point(1));
+          points.push_back(right_line.point(1));
+          points.push_back(left_line.point(left_line.point_size() - 2));
+          points.push_back(right_line.point(right_line.point_size() - 2));
+        }
+        junc_points[junction_id] = points;
+      } else {
+        std::vector<PbPoint3D>& points = junc_points[junction_id];
+        for (auto lane : section.lanes) {
+          PbLineSegment left_line =
+              lane.lane.left_boundary().curve().segment(0).line_segment();
+          PbLineSegment right_line =
+              lane.lane.right_boundary().curve().segment(0).line_segment();
+          points.push_back(left_line.point(1));
+          points.push_back(right_line.point(1));
+          points.push_back(left_line.point(left_line.point_size() - 2));
+          points.push_back(right_line.point(right_line.point_size() - 2));
+        }
+      }
+    } else {
+      // lanes
+      RETURN_IF_ERROR(LanesXmlParser::Parse(*road_node, road_internal.id,
+                                            &road_internal.sections));
     }
-    // lanes
-    RETURN_IF_ERROR(LanesXmlParser::Parse(*road_node, road_internal.id,
-                                          &road_internal.sections));
 
     // objects
     auto sub_node = road_node->FirstChildElement("objects");
@@ -70,8 +104,8 @@ Status RoadsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
       // speed_bumps
       ObjectsXmlParser::ParseSpeedBumps(*sub_node, &road_internal.speed_bumps);
       // parking_spaces
-      ObjectsXmlParser::ParseParkingSpaces(
-                                    *sub_node, &road_internal.parking_spaces);
+      ObjectsXmlParser::ParseParkingSpaces(*sub_node,
+                                           &road_internal.parking_spaces);
     }
 
     // signals

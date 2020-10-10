@@ -101,5 +101,7 @@ message Lane {
   // Association between central point to closest road boundary.
   repeated LaneSampleAssociation left_road_sample = 20;
   repeated LaneSampleAssociation right_road_sample = 21;
+
+  optional Id lane_id = 22;
 }
 

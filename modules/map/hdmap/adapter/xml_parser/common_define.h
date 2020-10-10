@@ -83,6 +83,7 @@ using PbSignalType = apollo::hdmap::Signal_Type;
 using PbSubSignalType = apollo::hdmap::Subsignal_Type;
 using PbBoundaryEdgeType = apollo::hdmap::BoundaryEdge_Type;
 
+
 struct StopLineInternal {
   std::string id;
   PbCurve curve;
