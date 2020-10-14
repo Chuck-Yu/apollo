@@ -16,6 +16,7 @@ limitations under the License.
 
 #include <string>
 #include <vector>
+#include <cmath>
 
 #include "tinyxml2/tinyxml2.h"
 
@@ -42,16 +43,6 @@ Status JunctionsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
       return Status(apollo::common::ErrorCode::HDMAP_DATA_ERROR, err_msg);
     }
 
-    // connection
-    // const tinyxml2::XMLElement* road_node = 
-    //   junction_node->FirstChildElement("connection");
-    // while (road_node) {
-    //   std::string road_id;
-    //   UtilXmlParser::QueryStringAttribute(*road_node, "connectingRoad", &road_id);
-
-    //   road_node = road_node->NextSiblingElement("connection");
-    // }
-
     // outline
     const tinyxml2::XMLElement* sub_node =
         junction_node->FirstChildElement("outline");
@@ -63,20 +54,42 @@ Status JunctionsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
     PbJunction junction;
     junction.mutable_id()->set_id(junction_id);
     PbPolygon* polygon = junction.mutable_polygon();
-    PbPolygon* polygon_tmp = new PbPolygon;
-    RETURN_IF_ERROR(UtilXmlParser::ParseOutline(*sub_node, polygon_tmp));
+    // PbPolygon* polygon_tmp = new PbPolygon;
+    // RETURN_IF_ERROR(UtilXmlParser::ParseOutline(*sub_node, polygon_tmp));
 
-    for (auto& p : polygon_tmp->point()) {
-      for (auto junc_point : junc_points[junction_id]) {
-        if (std::abs(p.x() - junc_point.x()) < 1.0 &&
-            std::abs(p.y() - junc_point.y()) < 1.0) {
-              PbPoint3D* pt = polygon->add_point();
-              pt->set_x(junc_point.x());
-              pt->set_y(junc_point.y());
-              pt->set_z(junc_point.z());
-              break;
-            }
+    float sum_x = 0, sum_y = 0;
+    float avg_x, avg_y;
+    for (auto junc_point : junc_points[junction_id]) {
+      sum_x += junc_point.x();
+      sum_y += junc_point.y();
+    }
+    avg_x = sum_x / junc_points[junction_id].size();
+    avg_y = sum_y / junc_points[junction_id].size();
+
+    float theta_prev, theta_prev_m;
+    std::map<float, PbPoint3D> points_map;
+    std::map<float, PbPoint3D> points_map_m; // _minus
+    for (auto junc_point : junc_points[junction_id]) {
+      if (junc_point.x() < avg_x) {
+        float theta = atan2(junc_point.y()-avg_y, avg_x-junc_point.x());
+        points_map_m[-theta] = junc_point;
+      } else {
+        float theta = atan2(junc_point.y()-avg_y, junc_point.x()-avg_x);
+        points_map[theta] = junc_point;
       }
+    }
+
+    for (auto iter : points_map) {
+      PbPoint3D* pt = polygon->add_point();
+      pt->set_x(iter.second.x());
+      pt->set_y(iter.second.y());
+      pt->set_z(iter.second.z());
+    }
+    for (auto iter : points_map_m) {
+      PbPoint3D* pt = polygon->add_point();
+      pt->set_x(iter.second.x());
+      pt->set_y(iter.second.y());
+      pt->set_z(iter.second.z());
     }
 
     JunctionInternal junction_internal;
