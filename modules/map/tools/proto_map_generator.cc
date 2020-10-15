@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 
   // const auto map_filename = "./base_map.xml";
   // const auto map_filename = FLAGS_map_dir + "/dxbj_roads_apollo_3.0.xml";
-  const auto map_filename = FLAGS_map_dir + "/base_map_town10hd.xml";
+  const auto map_filename = FLAGS_map_dir + "/base_map_town03.xml";
   // const auto map_filename = FLAGS_map_dir + argv[1];
   apollo::hdmap::Map pb_map;
   allride::hdmap::BaseMap base_map;
@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
   CHECK(apollo::common::util::SetProtoToASCIIFile(pb_map, output_ascii_file))
       << "failed to output ASCII format base map";
 
-  const std::string output_ascii_file_carla = FLAGS_output_dir + "/base_map_town10hd.pb.txt";
+  const std::string output_ascii_file_carla = FLAGS_output_dir + "/base_map_town03.pb.txt";
+  // const std::string output_ascii_file_carla = FLAGS_output_dir + "/base_map_dxbj.pb.txt";
   CHECK(apollo::common::util::SetProtoToASCIIFile(base_map, output_ascii_file_carla))
       << "failed to output ASCII format base map";
 

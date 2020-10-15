@@ -68,6 +68,7 @@ class LanesXmlParser {
   static Status ParseLaneOverlapGroup(
       const tinyxml2::XMLElement& xml_node,
       std::vector<OverlapWithLane>* lane_overlaps);
+  static Status ParseLeftBoundary(PbLane* lane);
 
   static Status ToPbLaneType(const std::string& type, PbLaneType* pb_type);
   static Status ToPbTurnType(const std::string& type, PbTurnType* pb_turn_type);

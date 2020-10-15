@@ -57,8 +57,8 @@ Status JunctionsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
     // PbPolygon* polygon_tmp = new PbPolygon;
     // RETURN_IF_ERROR(UtilXmlParser::ParseOutline(*sub_node, polygon_tmp));
 
-    float sum_x = 0, sum_y = 0;
-    float avg_x, avg_y;
+    double sum_x = 0, sum_y = 0;
+    double avg_x, avg_y;
     for (auto junc_point : junc_points[junction_id]) {
       sum_x += junc_point.x();
       sum_y += junc_point.y();
@@ -66,31 +66,51 @@ Status JunctionsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
     avg_x = sum_x / junc_points[junction_id].size();
     avg_y = sum_y / junc_points[junction_id].size();
 
-    float theta_prev, theta_prev_m;
-    std::map<float, PbPoint3D> points_map;
-    std::map<float, PbPoint3D> points_map_m; // _minus
+    double theta_prev, theta_prev_m;
+    std::map<double, PbPoint3D> points_map;
+    std::map<double, PbPoint3D> points_map_m; // _minus
     for (auto junc_point : junc_points[junction_id]) {
       if (junc_point.x() < avg_x) {
-        float theta = atan2(junc_point.y()-avg_y, avg_x-junc_point.x());
-        points_map_m[-theta] = junc_point;
+        double theta = atan2(junc_point.y()-avg_y, avg_x-junc_point.x());
+        points_map_m[theta] = junc_point;
       } else {
-        float theta = atan2(junc_point.y()-avg_y, junc_point.x()-avg_x);
-        points_map[theta] = junc_point;
+        double theta = atan2(junc_point.y()-avg_y, junc_point.x()-avg_x);
+        points_map[-theta] = junc_point;
       }
     }
 
+    bool flag = false;
     for (auto iter : points_map) {
+      if (std::abs(iter.first - theta_prev) < 0.1 && flag)
+        continue;
+
+      theta_prev = iter.first;
+      flag = true;
+
       PbPoint3D* pt = polygon->add_point();
       pt->set_x(iter.second.x());
       pt->set_y(iter.second.y());
       pt->set_z(iter.second.z());
     }
+    flag = false;
     for (auto iter : points_map_m) {
+      if (std::abs(iter.first - theta_prev) < 0.1 && flag)
+        continue;
+
+      theta_prev = iter.first;
+      flag = true;
+
       PbPoint3D* pt = polygon->add_point();
       pt->set_x(iter.second.x());
       pt->set_y(iter.second.y());
       pt->set_z(iter.second.z());
     }
+    // loop close
+    PbPoint3D* pt = polygon->add_point();
+    pt->set_x(polygon->point(0).x());
+    pt->set_y(polygon->point(0).y());
+    pt->set_z(polygon->point(0).z());
+
 
     JunctionInternal junction_internal;
     junction_internal.junction = junction;

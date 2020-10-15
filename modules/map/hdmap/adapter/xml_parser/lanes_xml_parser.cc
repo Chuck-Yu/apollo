@@ -296,47 +296,47 @@ Status LanesXmlParser::ParseLaneSection(const tinyxml2::XMLElement& xml_node,
     while (sub_node) {
       LaneInternal lane_internal;
       RETURN_IF_ERROR(ParseLane(*sub_node, &lane_internal));
-      *(lane_internal.lane.mutable_left_boundary()) =
-          lane_internal.lane.right_boundary();
-      lane_internal.lane.clear_right_boundary();
-      if (lanes->size() > 0) {
-        PbLane& left_neighbor_lane = lanes->back().lane;
-        *(left_neighbor_lane.mutable_right_boundary()) =
-            lane_internal.lane.left_boundary();
-      }
+      // *(lane_internal.lane.mutable_left_boundary()) =
+      // lane_internal.lane.right_boundary();
+      // lane_internal.lane.clear_right_boundary();
+      // if (lanes->size() > 0) {
+      //   PbLane& left_neighbor_lane = lanes->back().lane;
+      //   *(left_neighbor_lane.mutable_right_boundary()) =
+      //       lane_internal.lane.left_boundary();
+      // }
       lanes->push_back(lane_internal);
       sub_node = sub_node->NextSiblingElement("lane");
     }
   }
 
   // center
-  LaneInternal reference_lane_internal;
-  sub_node = xml_node.FirstChildElement("center");
-  CHECK_NOTNULL(sub_node);
-  sub_node = sub_node->FirstChildElement("lane");
-  CHECK_NOTNULL(sub_node);
-  RETURN_IF_ERROR(ParseLane(*sub_node, &reference_lane_internal));
-  *(reference_lane_internal.lane.mutable_left_boundary()) =
-      reference_lane_internal.lane.right_boundary();
-  if (lanes->size() > 0) {
-    PbLane& left_neighbor_lane = lanes->back().lane;
-    *(left_neighbor_lane.mutable_right_boundary()) =
-        reference_lane_internal.lane.left_boundary();
-  }
+  // LaneInternal reference_lane_internal;
+  // sub_node = xml_node.FirstChildElement("center");
+  // CHECK_NOTNULL(sub_node);
+  // sub_node = sub_node->FirstChildElement("lane");
+  // CHECK_NOTNULL(sub_node);
+  // RETURN_IF_ERROR(ParseLane(*sub_node, &reference_lane_internal));
+  // *(reference_lane_internal.lane.mutable_left_boundary()) =
+  //     reference_lane_internal.lane.right_boundary();
+  // if (lanes->size() > 0) {
+  //   PbLane& left_neighbor_lane = lanes->back().lane;
+  //   *(left_neighbor_lane.mutable_right_boundary()) =
+  //       reference_lane_internal.lane.left_boundary();
+  // }
 
   // right
   sub_node = xml_node.FirstChildElement("right");
   if (sub_node) {
     sub_node = sub_node->FirstChildElement("lane");
-    PbLane* left_neighbor_lane = &reference_lane_internal.lane;
+    // PbLane* left_neighbor_lane = &reference_lane_internal.lane;
     while (sub_node) {
       // PbLane lane
       LaneInternal lane_internal;
       RETURN_IF_ERROR(ParseLane(*sub_node, &lane_internal));
-      *(lane_internal.lane.mutable_left_boundary()) =
-          left_neighbor_lane->right_boundary();
+      // *(lane_internal.lane.mutable_left_boundary()) =
+      // lane_internal.lane.right_boundary();
       lanes->push_back(lane_internal);
-      left_neighbor_lane = &lanes->back().lane;
+      // left_neighbor_lane = &lanes->back().lane;
       sub_node = sub_node->NextSiblingElement("lane");
     }
   }
@@ -461,6 +461,8 @@ Status LanesXmlParser::ParseLane(const tinyxml2::XMLElement& xml_node,
 
   // center curve
   RETURN_IF_ERROR(ParseCenterCurve(xml_node, lane));
+  // left boundary
+  ParseLeftBoundary(lane);
   // speed
   RETURN_IF_ERROR(ParseSpeed(xml_node, lane));
   // sample association
@@ -476,6 +478,45 @@ Status LanesXmlParser::ParseLane(const tinyxml2::XMLElement& xml_node,
   ParseJunctionOverlapGroup(xml_node, &lane_internal->overlap_junctions);
   // overlap lane
   ParseLaneOverlapGroup(xml_node, &lane_internal->overlap_lanes);
+
+  return Status::OK();
+}
+
+Status LanesXmlParser::ParseLeftBoundary(PbLane* lane) {
+  CHECK_NOTNULL(lane);
+
+  PbLaneBoundary* lane_boundary = lane->mutable_left_boundary();
+
+  // curve
+  PbCurveSegment* curve_seg = lane_boundary->mutable_curve()->add_segment();
+  PbLineSegment* line_seg = curve_seg->mutable_line_segment();
+
+  PbLineSegment right_line =
+      lane->right_boundary().curve().segment(0).line_segment();
+  PbLineSegment center_line = lane->central_curve().segment(0).line_segment();
+
+  int cnt = (center_line.point_size() < right_line.point_size())
+                ? center_line.point_size()
+                : right_line.point_size();
+
+  for (size_t i = 0; i < cnt; i++) {
+    double delta_x = center_line.point(i).x() - right_line.point(i).x();
+    double delta_y = center_line.point(i).y() - right_line.point(i).y();
+    PbPoint3D* pt = line_seg->add_point();
+    pt->set_x(center_line.point(i).x() + delta_x);
+    pt->set_y(center_line.point(i).y() + delta_y);
+    pt->set_z(0.0);
+  }
+
+  // length
+  lane_boundary->set_length(lane->right_boundary().length());
+  // virtual
+  lane_boundary->set_virtual_(lane->right_boundary().virtual_());
+  // boundary type
+  auto lane_boundary_type = lane_boundary->add_boundary_type();
+  lane_boundary_type->set_s(lane->right_boundary().boundary_type(0).s());
+  lane_boundary_type->add_types(
+      lane->right_boundary().boundary_type(0).types(0));
 
   return Status::OK();
 }

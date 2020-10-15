@@ -367,6 +367,9 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
     APbBoundary boundary_left;
     APbBoundary boundary_right;
 
+    if (pb_lane.type() != PbLaneType::Lane_LaneType_CITY_DRIVING)
+      continue;
+
     APbPolyline* pl = new APbPolyline;
     for (auto& point :
          pb_lane.central_curve().segment(0).line_segment().point()) {
@@ -516,6 +519,7 @@ void ProtoOrganizer::OutputDataAllride(allride::hdmap::BaseMap& pb_map) {
     pb_map.mutable_boundaries()->insert({boundary_left.id(), boundary_left});
     pb_map.mutable_boundaries()->insert({boundary_right.id(), boundary_right});
   }
+
   // for (auto& crosswalk_pair : proto_data_.pb_crosswalks) {
   //   *(pb_map->add_crosswalk()) = crosswalk_pair.second;
   // }

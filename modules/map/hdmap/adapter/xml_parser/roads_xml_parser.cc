@@ -63,6 +63,8 @@ Status RoadsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
       if (junc_points.find(junction_id) == junc_points.end()) {
         std::vector<PbPoint3D> points;
         for (auto lane : section.lanes) {
+          if (lane.lane.type() != PbLaneType::Lane_LaneType_CITY_DRIVING)
+            continue;
           PbLineSegment left_line =
               lane.lane.left_boundary().curve().segment(0).line_segment();
           PbLineSegment right_line =
@@ -76,6 +78,8 @@ Status RoadsXmlParser::Parse(const tinyxml2::XMLElement& xml_node,
       } else {
         std::vector<PbPoint3D>& points = junc_points[junction_id];
         for (auto lane : section.lanes) {
+          if (lane.lane.type() != PbLaneType::Lane_LaneType_CITY_DRIVING)
+            continue;
           PbLineSegment left_line =
               lane.lane.left_boundary().curve().segment(0).line_segment();
           PbLineSegment right_line =
