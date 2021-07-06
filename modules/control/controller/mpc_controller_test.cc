@@ -21,7 +21,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "modules/common/time/time.h"
+#include "cyber/time/clock.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/control/common/control_gflags.h"
 #include "modules/control/proto/control_conf.pb.h"
@@ -31,7 +31,7 @@
 namespace apollo {
 namespace control {
 
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 using PlanningTrajectoryPb = planning::ADCTrajectory;
 using LocalizationPb = localization::LocalizationEstimate;
 using ChassisPb = canbus::Chassis;
@@ -98,7 +98,8 @@ TEST_F(MPCControllerTest, ComputeLateralErrors) {
   auto chassis_pb = LoadChassisPb(
       "/apollo/modules/control/testdata/mpc_controller_test/1_chassis.pb.txt");
   FLAGS_enable_map_reference_unify = false;
-  auto vehicle_state = VehicleStateProvider::Instance();
+  auto injector = std::make_shared<DependencyInjector>();
+  auto vehicle_state = injector->vehicle_state();
   vehicle_state->Update(localization_pb, chassis_pb);
 
   auto planning_trajectory_pb = LoadPlanningTrajectoryPb(

@@ -30,7 +30,6 @@
 #include "modules/common/math/math_utils.h"
 #include "modules/common/math/vec2d.h"
 #include "modules/common/util/util.h"
-#include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/map/proto/map_lane.pb.h"
 #include "modules/map/relative_map/common/relative_map_gflags.h"
 
@@ -144,6 +143,11 @@ void NavigationLane::SetConfig(const NavigationLaneConfig &config) {
   config_ = config;
 }
 
+void NavigationLane::SetVehicleStateProvider(
+    common::VehicleStateProvider *vehicle_state_provider) {
+  vehicle_state_provider_ = vehicle_state_provider;
+}
+
 void NavigationLane::UpdateNavigationInfo(
     const NavigationInfo &navigation_path) {
   navigation_info_ = navigation_path;
@@ -160,7 +164,7 @@ bool NavigationLane::GeneratePath() {
   current_navi_path_tuple_ = std::make_tuple(-1, -1.0, -1.0, nullptr);
 
   // original_pose is in world coordination: ENU
-  original_pose_ = VehicleStateProvider::Instance()->original_pose();
+  original_pose_ = vehicle_state_provider_->original_pose();
 
   int navigation_line_num = navigation_info_.navigation_path_size();
   const auto &lane_marker = perception_obstacles_.lane_marker();
@@ -444,8 +448,7 @@ bool NavigationLane::ConvertNavigationLineToPath(const int line_index,
     // path is empty
     return false;
   }
-  path->set_name("Path from navigation line index " +
-                 std::to_string(line_index));
+  path->set_name(absl::StrCat("Path from navigation line index ", line_index));
   const auto &navigation_path =
       navigation_info_.navigation_path(line_index).path();
   auto proj_index_pair = UpdateProjectionIndex(navigation_path, line_index);
@@ -667,25 +670,17 @@ void NavigationLane::ConvertLaneMarkerToPath(
 
   double path_c0 = (left_lane.c0_position() + right_lane.c0_position()) / 2.0;
 
-  double left_quality = left_lane.quality() + 0.001;
-  double right_quality = right_lane.quality() + 0.001;
+  double path_c1 =
+      (left_lane.c1_heading_angle() + right_lane.c1_heading_angle()) / 2.0;
 
-  double quality_divider = left_quality + right_quality;
+  double path_c2 = (left_lane.c2_curvature() + right_lane.c2_curvature()) / 2.0;
 
-  double path_c1 = (left_lane.c1_heading_angle() * left_quality +
-                    right_lane.c1_heading_angle() * right_quality) /
-                   quality_divider;
-
-  double path_c2 = (left_lane.c2_curvature() * left_quality +
-                    right_lane.c2_curvature() * right_quality) /
-                   quality_divider;
-
-  double path_c3 = (left_lane.c3_curvature_derivative() * left_quality +
-                    right_lane.c3_curvature_derivative() * right_quality) /
-                   quality_divider;
+  double path_c3 = (left_lane.c3_curvature_derivative() +
+                    right_lane.c3_curvature_derivative()) /
+                   2.0;
 
   const double current_speed =
-      VehicleStateProvider::Instance()->vehicle_state().linear_velocity();
+      vehicle_state_provider_->vehicle_state().linear_velocity();
   double path_range =
       current_speed * config_.ratio_navigation_lane_len_to_speed();
   if (path_range <= config_.min_len_for_navigation_lane()) {

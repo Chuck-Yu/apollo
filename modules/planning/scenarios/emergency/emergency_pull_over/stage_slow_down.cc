@@ -20,8 +20,9 @@
 
 #include "modules/planning/scenarios/emergency/emergency_pull_over/stage_slow_down.h"
 
-#include "cyber/common/log.h"
+#include <memory>
 
+#include "cyber/common/log.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/planning/common/frame.h"
 #include "modules/planning/common/planning_context.h"
@@ -37,8 +38,9 @@ namespace emergency_pull_over {
 using apollo::common::TrajectoryPoint;
 
 EmergencyPullOverStageSlowDown::EmergencyPullOverStageSlowDown(
-    const ScenarioConfig::StageConfig& config)
-    : Stage(config) {}
+    const ScenarioConfig::StageConfig& config,
+    const std::shared_ptr<DependencyInjector>& injector)
+    : Stage(config, injector) {}
 
 Stage::StageStatus EmergencyPullOverStageSlowDown::Process(
     const TrajectoryPoint& planning_init_point, Frame* frame) {
@@ -48,8 +50,7 @@ Stage::StageStatus EmergencyPullOverStageSlowDown::Process(
   scenario_config_.CopyFrom(GetContext()->scenario_config);
 
   // set cruise_speed to slow down
-  const double adc_speed =
-      common::VehicleStateProvider::Instance()->linear_velocity();
+  const double adc_speed = injector_->vehicle_state()->linear_velocity();
   double target_slow_down_speed = GetContext()->target_slow_down_speed;
   if (target_slow_down_speed <= 0) {
     target_slow_down_speed = GetContext()->target_slow_down_speed = std::max(
@@ -75,7 +76,7 @@ Stage::StageStatus EmergencyPullOverStageSlowDown::Process(
 }
 
 Stage::StageStatus EmergencyPullOverStageSlowDown::FinishStage() {
-  auto* pull_over_status = PlanningContext::Instance()
+  auto* pull_over_status = injector_->planning_context()
                                ->mutable_planning_status()
                                ->mutable_pull_over();
   pull_over_status->set_plan_pull_over_path(true);

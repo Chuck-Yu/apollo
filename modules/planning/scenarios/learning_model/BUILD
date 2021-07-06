@@ -1,49 +1,67 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//tools/platform:build_defs.bzl", "if_gpu")
 load("//tools:cpplint.bzl", "cpplint")
 
 package(default_visibility = ["//visibility:public"])
+PLANNING_COPTS = ["-DMODULE_NAME=\\\"planning\\\""]
 
 cc_library(
     name = "learning_model",
-    copts = ["-DMODULE_NAME=\\\"planning\\\""],
+    copts = PLANNING_COPTS,
     deps = [
-        ":test_learning_model_scenario",
+        ":learning_model_sample_scenario",
     ],
 )
 
 cc_library(
-    name = "test_learning_model_scenario",
-    srcs = ["test_learning_model_scenario.cc"],
-    hdrs = ["test_learning_model_scenario.h"],
-    copts = ["-DMODULE_NAME=\\\"planning\\\""],
+    name = "learning_model_sample_scenario",
+    srcs = [
+        "learning_model_sample_scenario.cc",
+        "stage_run.cc",
+    ],
+    hdrs = [
+        "learning_model_sample_scenario.h",
+        "stage_run.h",
+    ],
+    copts = PLANNING_COPTS,
     deps = [
         "//cyber/common:log",
-        "//modules/common/proto:pnc_point_proto",
+        "//modules/common/proto:pnc_point_cc_proto",
         "//modules/common/status",
-        "//modules/common/time",
-        "//modules/common/util",
         "//modules/common/util:factory",
-        "//modules/common/vehicle_state:vehicle_state_provider",
-        "//modules/map/hdmap",
-        "//modules/planning/common:planning_common",
-        "//modules/planning/constraint_checker",
-        "//modules/planning/proto:planning_proto",
         "//modules/planning/reference_line",
         "//modules/planning/scenarios:scenario",
-        "//third_party:libtorch",
-        "@com_github_gflags_gflags//:gflags",
         "@eigen",
+    ] + if_gpu(
+        ["@libtorch_gpu"],
+        ["@libtorch_cpu"],
+    ),
+)
+
+cc_test(
+    name = "learning_model_sample_scenario_test",
+    size = "small",
+    srcs = ["learning_model_sample_scenario_test.cc"],
+    data = [
+        "//modules/planning:planning_conf",
+    ],
+    linkopts = ["-lgomp"],
+    deps = [
+        ":learning_model_sample_scenario",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_test(
-    name = "test_learning_model_scenario_test",
+    name = "stage_run_test",
     size = "small",
-    srcs = ["test_learning_model_scenario_test.cc"],
+    srcs = ["stage_run_test.cc"],
     data = [
         "//modules/planning:planning_conf",
     ],
+    linkopts = ["-lgomp"],
     deps = [
-        ":test_learning_model_scenario",
+        ":learning_model_sample_scenario",
         "@com_google_googletest//:gtest_main",
     ],
 )

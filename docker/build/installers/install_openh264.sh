@@ -20,19 +20,30 @@
 set -e
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
+. ./installer_base.sh
+
+apt_get_update_and_install nasm
+
+VERSION="2.1.1"
+PKG_NAME="openh264-${VERSION}.tar.gz"
+CHECKSUM="af173e90fce65f80722fa894e1af0d6b07572292e76de7b65273df4c0a8be678"
+DOWNLOAD_LINK="https://github.com/cisco/openh264/archive/v${VERSION}.tar.gz"
 
 # Prepare
-PACKAGE="v2.0.0.tar.gz"
-OPEN_H264="openh264-2.0.0"
-wget https://github.com/cisco/openh264/archive/${PACKAGE}
-tar zxf ${PACKAGE}
+download_if_not_cached "$PKG_NAME" "$CHECKSUM" "$DOWNLOAD_LINK"
+
+tar xzf ${PKG_NAME}
 
 # Build and install.
-pushd ${OPEN_H264}
-  make
-  make install
+pushd openh264-${VERSION}
+    make \
+        BUILDTYPE=Release \
+        PREFIX="${SYSROOT_DIR}" \
+        -j$(nproc) install
 popd
+ldconfig
+
+apt_get_remove nasm
 
 # Clean
-rm -fr ${PACKAGE} ${OPEN_H264}
-
+rm -fr "${PKG_NAME}" "openh264-${VERSION}"

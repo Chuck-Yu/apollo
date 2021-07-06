@@ -43,8 +43,13 @@ void SubmoduleOutput::set_curr_frame_considered_obstacle_ids(
   curr_frame_considered_obstacle_ids_ = curr_frame_considered_obstacle_ids;
 }
 
-void SubmoduleOutput::set_frame_start_time(const absl::Time& frame_start_time) {
+void SubmoduleOutput::set_frame_start_time(
+    const apollo::cyber::Time& frame_start_time) {
   frame_start_time_ = frame_start_time;
+}
+
+void SubmoduleOutput::set_curr_scenario(const Scenario& scenario) {
+  curr_scenario_ = scenario;
 }
 
 const std::vector<Obstacle>& SubmoduleOutput::curr_frame_obstacles() const {
@@ -65,7 +70,7 @@ std::vector<int> SubmoduleOutput::curr_frame_considered_obstacle_ids() const {
   return curr_frame_considered_obstacle_ids_;
 }
 
-const absl::Time& SubmoduleOutput::frame_start_time() const {
+const apollo::cyber::Time& SubmoduleOutput::frame_start_time() const {
   return frame_start_time_;
 }
 

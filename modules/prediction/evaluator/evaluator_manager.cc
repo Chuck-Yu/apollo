@@ -24,11 +24,9 @@
 #include "modules/prediction/common/prediction_gflags.h"
 #include "modules/prediction/common/prediction_system_gflags.h"
 #include "modules/prediction/common/prediction_thread_pool.h"
-#include "modules/prediction/common/semantic_map.h"
 #include "modules/prediction/container/container_manager.h"
 #include "modules/prediction/container/obstacles/obstacles_container.h"
 #include "modules/prediction/evaluator/cyclist/cyclist_keep_lane_evaluator.h"
-#include "modules/prediction/evaluator/pedestrian/pedestrian_interaction_evaluator.h"
 #include "modules/prediction/evaluator/vehicle/cost_evaluator.h"
 #include "modules/prediction/evaluator/vehicle/cruise_mlp_evaluator.h"
 #include "modules/prediction/evaluator/vehicle/junction_map_evaluator.h"
@@ -94,7 +92,7 @@ void GroupObstaclesByObstacleIds(ObstaclesContainer* const obstacles_container,
 
 }  // namespace
 
-EvaluatorManager::EvaluatorManager() { RegisterEvaluators(); }
+EvaluatorManager::EvaluatorManager() {}
 
 void EvaluatorManager::RegisterEvaluators() {
   RegisterEvaluator(ObstacleConf::MLP_EVALUATOR);
@@ -104,12 +102,19 @@ void EvaluatorManager::RegisterEvaluators() {
   RegisterEvaluator(ObstacleConf::CYCLIST_KEEP_LANE_EVALUATOR);
   RegisterEvaluator(ObstacleConf::LANE_SCANNING_EVALUATOR);
   RegisterEvaluator(ObstacleConf::LANE_AGGREGATING_EVALUATOR);
-  RegisterEvaluator(ObstacleConf::PEDESTRIAN_INTERACTION_EVALUATOR);
   RegisterEvaluator(ObstacleConf::JUNCTION_MAP_EVALUATOR);
   RegisterEvaluator(ObstacleConf::SEMANTIC_LSTM_EVALUATOR);
 }
 
 void EvaluatorManager::Init(const PredictionConf& config) {
+  if (FLAGS_enable_semantic_map) {
+    semantic_map_.reset(new SemanticMap());
+    semantic_map_->Init();
+    ADEBUG << "Init SemanticMap instance.";
+  }
+
+  RegisterEvaluators();
+
   for (const auto& obstacle_conf : config.obstacle_conf()) {
     if (!obstacle_conf.has_obstacle_type()) {
       AERROR << "Obstacle config [" << obstacle_conf.ShortDebugString()
@@ -164,7 +169,9 @@ void EvaluatorManager::Init(const PredictionConf& config) {
           }
           break;
         }
-        default: { break; }
+        default: {
+          break;
+        }
       }
     }
   }
@@ -175,11 +182,6 @@ void EvaluatorManager::Init(const PredictionConf& config) {
         << cyclist_on_lane_evaluator_ << "]";
   AINFO << "Defined default on lane obstacle evaluator ["
         << default_on_lane_evaluator_ << "]";
-
-  if (FLAGS_enable_semantic_map) {
-    SemanticMap::Instance()->Init();
-    ADEBUG << "Init SemanticMap instance.";
-  }
 }
 
 Evaluator* EvaluatorManager::GetEvaluator(
@@ -200,7 +202,7 @@ void EvaluatorManager::Run(ObstaclesContainer* obstacles_container) {
     if (FLAGS_prediction_offline_mode == PredictionConstants::kDumpFrameEnv) {
       return;
     }
-    SemanticMap::Instance()->RunCurrFrame(obstacle_id_history_map_);
+    semantic_map_->RunCurrFrame(obstacle_id_history_map_);
   }
 
   std::vector<Obstacle*> dynamic_env;
@@ -322,8 +324,7 @@ void EvaluatorManager::BuildObstacleIdHistoryMap(
     if (obstacle == nullptr || obstacle->history_size() == 0) {
       continue;
     }
-    size_t num_frames =
-        std::min(max_num_frame, obstacle->history_size());
+    size_t num_frames = std::min(max_num_frame, obstacle->history_size());
     for (size_t i = 0; i < num_frames; ++i) {
       const Feature& obstacle_feature = obstacle->feature(i);
       Feature feature;
@@ -399,19 +400,17 @@ std::unique_ptr<Evaluator> EvaluatorManager::CreateEvaluator(
       evaluator_ptr.reset(new LaneAggregatingEvaluator());
       break;
     }
-    case ObstacleConf::PEDESTRIAN_INTERACTION_EVALUATOR: {
-      evaluator_ptr.reset(new PedestrianInteractionEvaluator());
-      break;
-    }
     case ObstacleConf::JUNCTION_MAP_EVALUATOR: {
-      evaluator_ptr.reset(new JunctionMapEvaluator());
+      evaluator_ptr.reset(new JunctionMapEvaluator(semantic_map_.get()));
       break;
     }
     case ObstacleConf::SEMANTIC_LSTM_EVALUATOR: {
-      evaluator_ptr.reset(new SemanticLSTMEvaluator());
+      evaluator_ptr.reset(new SemanticLSTMEvaluator(semantic_map_.get()));
       break;
     }
-    default: { break; }
+    default: {
+      break;
+    }
   }
   return evaluator_ptr;
 }

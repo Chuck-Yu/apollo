@@ -20,6 +20,8 @@
 
 #include "modules/planning/open_space/coarse_trajectory_generator/hybrid_a_star.h"
 
+#include <limits>
+
 #include "modules/planning/math/piecewise_jerk/piecewise_jerk_speed_problem.h"
 
 namespace apollo {
@@ -27,7 +29,7 @@ namespace planning {
 
 using apollo::common::math::Box2d;
 using apollo::common::math::Vec2d;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 
 HybridAStar::HybridAStar(const PlannerOpenSpaceConfig& open_space_conf) {
   planner_open_space_config_.CopyFrom(open_space_conf);
@@ -84,7 +86,7 @@ bool HybridAStar::RSPCheck(
 
 bool HybridAStar::ValidityCheck(std::shared_ptr<Node3d> node) {
   CHECK_NOTNULL(node);
-  CHECK_GT(node->GetStepSize(), 0);
+  CHECK_GT(node->GetStepSize(), 0U);
 
   if (obstacles_linesegments_vec_.empty()) {
     return true;
@@ -403,7 +405,11 @@ bool HybridAStar::GenerateSCurveSpeedAcceleration(HybridAStartResult* result) {
                                               path_length * max_reverse_acc) /
                                              (max_reverse_acc * max_reverse_v),
                                   10.0);
-
+  if (total_t + delta_t >= delta_t * std::numeric_limits<size_t>::max()) {
+    AERROR << "Number of knots overflow. total_t: " << total_t
+           << ", delta_t: " << delta_t;
+    return false;
+  }
   const size_t num_of_knots = static_cast<size_t>(total_t / delta_t) + 1;
 
   PiecewiseJerkSpeedProblem piecewise_jerk_problem(
@@ -428,7 +434,7 @@ bool HybridAStar::GenerateSCurveSpeedAcceleration(HybridAStartResult* result) {
 
   // TODO(Jinyun): move to confs
   std::vector<double> x_ref(num_of_knots, path_length);
-  piecewise_jerk_problem.set_x_ref(10000.0, x_ref);
+  piecewise_jerk_problem.set_x_ref(10000.0, std::move(x_ref));
   piecewise_jerk_problem.set_weight_ddx(10.0);
   piecewise_jerk_problem.set_weight_dddx(10.0);
   piecewise_jerk_problem.set_x_bounds(std::move(x_bounds));

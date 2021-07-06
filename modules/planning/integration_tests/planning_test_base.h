@@ -22,7 +22,6 @@
 
 #include "modules/planning/proto/traffic_rule_config.pb.h"
 
-#define protected public
 // TODO(all) #include "modules/planning/navi_planning.h"
 #include "modules/planning/on_lane_planning.h"
 #include "modules/planning/planning_base.h"
@@ -99,6 +98,7 @@ class PlanningTestBase : public ::testing::Test {
   ADCTrajectory adc_trajectory_;
   LocalView local_view_;
   PlanningConfig config_;
+  std::shared_ptr<DependencyInjector> injector_;
 };
 
 }  // namespace planning

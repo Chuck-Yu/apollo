@@ -23,15 +23,14 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include "modules/common/proto/pnc_point.pb.h"
-#include "modules/planning/proto/decision.pb.h"
-
 #include "cyber/common/log.h"
 #include "modules/common/configs/vehicle_config_helper.h"
 #include "modules/common/math/line_segment2d.h"
 #include "modules/common/math/vec2d.h"
+#include "modules/common/proto/pnc_point.pb.h"
 #include "modules/common/util/util.h"
 #include "modules/planning/common/planning_gflags.h"
+#include "modules/planning/proto/decision.pb.h"
 
 namespace apollo {
 namespace planning {
@@ -51,13 +50,15 @@ using ObsTEdge = std::tuple<int, double, double, double, std::string>;
 void STObstaclesProcessor::Init(const double planning_distance,
                                 const double planning_time,
                                 const PathData& path_data,
-                                PathDecision* const path_decision) {
+                                PathDecision* const path_decision,
+                                History* const history) {
   planning_time_ = planning_time;
   planning_distance_ = planning_distance;
   path_data_ = path_data;
   vehicle_param_ = common::VehicleConfigHelper::GetConfig().vehicle_param();
   adc_path_init_s_ = path_data_.discretized_path().front().s();
   path_decision_ = path_decision;
+  history_ = history;
 
   obs_t_edges_.clear();
   obs_t_edges_idx_ = 0;
@@ -73,18 +74,22 @@ Status STObstaclesProcessor::MapObstaclesToSTBoundaries(
   // Sanity checks.
   if (path_decision == nullptr) {
     const std::string msg = "path_decision is nullptr";
+    AERROR << msg;
     return Status(ErrorCode::PLANNING_ERROR, msg);
   }
   if (planning_time_ < 0.0) {
     const std::string msg = "Negative planning time.";
+    AERROR << msg;
     return Status(ErrorCode::PLANNING_ERROR, msg);
   }
   if (planning_distance_ < 0.0) {
     const std::string msg = "Negative planning distance.";
+    AERROR << msg;
     return Status(ErrorCode::PLANNING_ERROR, msg);
   }
   if (path_data_.discretized_path().size() <= 1) {
     const std::string msg = "Number of path points is too few.";
+    AERROR << msg;
     return Status(ErrorCode::PLANNING_ERROR, msg);
   }
   obs_id_to_st_boundary_.clear();
@@ -120,6 +125,7 @@ Status STObstaclesProcessor::MapObstaclesToSTBoundaries(
     Obstacle* obs_ptr = path_decision->Find(obs_item_ptr->Id());
     if (obs_ptr == nullptr) {
       const std::string msg = "Null obstacle pointer.";
+      AERROR << msg;
       return Status(ErrorCode::PLANNING_ERROR, msg);
     }
 

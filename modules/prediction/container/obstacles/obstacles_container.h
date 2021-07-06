@@ -26,8 +26,10 @@
 #include <vector>
 
 #include "modules/common/util/lru_cache.h"
+#include "modules/prediction/common/junction_analyzer.h"
 #include "modules/prediction/container/container.h"
 #include "modules/prediction/container/obstacles/obstacle.h"
+#include "modules/prediction/container/obstacles/obstacle_clusters.h"
 #include "modules/prediction/proto/prediction_obstacle.pb.h"
 #include "modules/prediction/submodules/submodule_output.h"
 
@@ -132,8 +134,19 @@ class ObstaclesContainer : public Container {
 
   double timestamp() const;
 
-  SubmoduleOutput GetSubmoduleOutput(const size_t history_size,
-                                     const absl::Time& frame_start_time);
+  SubmoduleOutput GetSubmoduleOutput(
+      const size_t history_size, const apollo::cyber::Time& frame_start_time);
+
+  /**
+   * @brief Get current scenario
+   */
+  const Scenario& curr_scenario() const;
+
+  /**
+   * @brief Get the raw pointer of clusters_
+   */
+  ObstacleClusters* GetClustersPtr() const;
+  JunctionAnalyzer* GetJunctionAnalyzer();
 
  private:
   Obstacle* GetObstacleWithLRUUpdate(const int obstacle_id);
@@ -151,6 +164,9 @@ class ObstaclesContainer : public Container {
   std::vector<int> curr_frame_movable_obstacle_ids_;
   std::vector<int> curr_frame_unmovable_obstacle_ids_;
   std::vector<int> curr_frame_considered_obstacle_ids_;
+  Scenario curr_scenario_;
+  std::unique_ptr<ObstacleClusters> clusters_;
+  JunctionAnalyzer junction_analyzer_;
 };
 
 }  // namespace prediction

@@ -27,9 +27,9 @@
 
 #include "cyber/common/file.h"
 #include "cyber/task/task.h"
+#include "cyber/time/clock.h"
 #include "modules/common/configs/vehicle_config_helper.h"
 #include "modules/common/math/math_utils.h"
-#include "modules/common/time/time.h"
 #include "modules/common/util/point_factory.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/map/hdmap/hdmap_util.h"
@@ -49,7 +49,7 @@ using apollo::common::VehicleConfigHelper;
 using apollo::common::VehicleState;
 using apollo::common::math::AngleDiff;
 using apollo::common::math::Vec2d;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 using apollo::hdmap::HDMapUtil;
 using apollo::hdmap::LaneWaypoint;
 using apollo::hdmap::MapPathPoint;
@@ -59,8 +59,10 @@ using apollo::hdmap::RouteSegments;
 ReferenceLineProvider::~ReferenceLineProvider() {}
 
 ReferenceLineProvider::ReferenceLineProvider(
+    const common::VehicleStateProvider *vehicle_state_provider,
     const hdmap::HDMap *base_map,
-    const std::shared_ptr<relative_map::MapMsg> &relative_map) {
+    const std::shared_ptr<relative_map::MapMsg> &relative_map)
+    : vehicle_state_provider_(vehicle_state_provider) {
   if (!FLAGS_use_navigation_mode) {
     pnc_map_ = std::make_unique<hdmap::PncMap>(base_map);
     relative_map_ = nullptr;
@@ -308,8 +310,7 @@ bool ReferenceLineProvider::GetReferenceLinesFromRelativeMap(
     return false;
   }
   // get current adc lane info by vehicle state
-  common::VehicleState vehicle_state =
-      common::VehicleStateProvider::Instance()->vehicle_state();
+  common::VehicleState vehicle_state = vehicle_state_provider_->vehicle_state();
   hdmap::LaneWaypoint adc_lane_way_point;
   if (!GetNearestWayPointFromNavigationPath(vehicle_state, navigation_lane_ids,
                                             &adc_lane_way_point)) {

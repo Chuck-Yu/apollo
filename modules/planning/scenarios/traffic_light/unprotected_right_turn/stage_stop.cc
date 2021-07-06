@@ -21,7 +21,7 @@
 #include "modules/planning/scenarios/traffic_light/unprotected_right_turn/stage_stop.h"
 
 #include "cyber/common/log.h"
-#include "modules/common/time/time.h"
+#include "cyber/time/clock.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/map/pnc_map/path.h"
 #include "modules/planning/common/frame.h"
@@ -35,7 +35,7 @@ namespace scenario {
 namespace traffic_light {
 
 using apollo::common::TrajectoryPoint;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 using apollo::hdmap::HDMapUtil;
 using apollo::hdmap::PathOverlap;
 using apollo::perception::TrafficLight;
@@ -166,8 +166,7 @@ Stage::StageStatus TrafficLightUnprotectedRightTurnStageStop::FinishStage(
         TRAFFIC_LIGHT_UNPROTECTED_RIGHT_TURN_INTERSECTION_CRUISE;
   } else {
     // check speed at stop_stage
-    const double adc_speed =
-        common::VehicleStateProvider::Instance()->linear_velocity();
+    const double adc_speed = injector_->vehicle_state()->linear_velocity();
     if (adc_speed > scenario_config_.max_adc_speed_before_creep()) {
       // skip creep
       next_stage_ = ScenarioConfig ::
@@ -175,14 +174,14 @@ Stage::StageStatus TrafficLightUnprotectedRightTurnStageStop::FinishStage(
     } else {
       // creep
       // update PlanningContext
-      PlanningContext::Instance()
+      injector_->planning_context()
           ->mutable_planning_status()
           ->mutable_traffic_light()
           ->mutable_done_traffic_light_overlap_id()
           ->Clear();
       for (const auto& traffic_light_overlap_id :
            GetContext()->current_traffic_light_overlap_ids) {
-        PlanningContext::Instance()
+        injector_->planning_context()
             ->mutable_planning_status()
             ->mutable_traffic_light()
             ->add_done_traffic_light_overlap_id(traffic_light_overlap_id);

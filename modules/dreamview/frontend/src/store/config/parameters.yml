@@ -103,6 +103,8 @@ options:
     default: false
   showDataCollectionMonitor:
     default: false
+  showFuelClient:
+    default: false
   enableSimControl:
     default: false
   lockTaskPanel:
@@ -192,6 +194,18 @@ options:
   showObstaclesInfo:
     default: true
     menuId: perceptionObstacleInfo
+  showObstaclesLidarSensor:
+    default: false
+    menuId: perceptionLidarSensor
+  showObstaclesRadarSensor:
+    default: false
+    menuId: perceptionRadarSensor
+  showObstaclesCameraSensor:
+    default: false
+    menuId: perceptionCameraSensor
+  showObstaclesV2xInfo:
+    default: false
+    menuId: perceptionV2xInfo
   showPositionGps:
     default: false
     menuId: positionGps
@@ -237,6 +251,10 @@ options:
   showMapLaneId:
     default: false
     menuId: mapLaneId
+  showDefaultRoutingInput:
+    default: false
+  showCycleNumberInput:
+    default: false
 
 routingEditor:
   radiusOfMapRequest: 2000.0 # meters

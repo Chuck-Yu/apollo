@@ -20,10 +20,12 @@
 
 #include "modules/planning/tasks/optimizers/open_space_trajectory_generation/open_space_trajectory_provider.h"
 
+#include <memory>
 #include <string>
 
-#include "cyber/task/task.h"
 #include "modules/common/vehicle_state/proto/vehicle_state.pb.h"
+
+#include "cyber/task/task.h"
 #include "modules/planning/common/planning_context.h"
 #include "modules/planning/common/planning_gflags.h"
 #include "modules/planning/common/trajectory/publishable_trajectory.h"
@@ -36,11 +38,12 @@ using apollo::common::ErrorCode;
 using apollo::common::Status;
 using apollo::common::TrajectoryPoint;
 using apollo::common::math::Vec2d;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 
 OpenSpaceTrajectoryProvider::OpenSpaceTrajectoryProvider(
-    const TaskConfig& config)
-    : TrajectoryOptimizer(config) {
+    const TaskConfig& config,
+    const std::shared_ptr<DependencyInjector>& injector)
+    : TrajectoryOptimizer(config, injector) {
   open_space_trajectory_optimizer_.reset(new OpenSpaceTrajectoryOptimizer(
       config.open_space_trajectory_provider_config()
           .open_space_trajectory_optimizer_config()));
@@ -86,7 +89,7 @@ Status OpenSpaceTrajectoryProvider::Process() {
       frame_->mutable_open_space_info()->mutable_stitched_trajectory_result();
 
   // generate stop trajectory at park_and_go check_stage
-  if (PlanningContext::Instance()
+  if (injector_->planning_context()
           ->mutable_planning_status()
           ->mutable_park_and_go()
           ->in_check_stage()) {
@@ -102,7 +105,7 @@ Status OpenSpaceTrajectoryProvider::Process() {
   }
   // Get stitching trajectory from last frame
   const common::VehicleState vehicle_state = frame_->vehicle_state();
-  auto* previous_frame = FrameHistory::Instance()->Latest();
+  auto* previous_frame = injector_->frame_history()->Latest();
   // Use complete raw trajectory from last frame for stitching purpose
   std::vector<TrajectoryPoint> stitching_trajectory;
   if (!IsVehicleStopDueToFallBack(
@@ -128,7 +131,7 @@ Status OpenSpaceTrajectoryProvider::Process() {
         1.0 / static_cast<double>(FLAGS_planning_loop_rate);
     stitching_trajectory = TrajectoryStitcher::ComputeReinitStitchingTrajectory(
         planning_cycle_time, vehicle_state);
-    auto* open_space_status = PlanningContext::Instance()
+    auto* open_space_status = injector_->planning_context()
                                   ->mutable_planning_status()
                                   ->mutable_open_space();
     open_space_status->set_position_init(false);
@@ -287,7 +290,7 @@ bool OpenSpaceTrajectoryProvider::IsVehicleNearDestination(
     const common::VehicleState& vehicle_state,
     const std::vector<double>& end_pose, double rotate_angle,
     const Vec2d& translate_origin) {
-  CHECK_EQ(end_pose.size(), 4);
+  CHECK_EQ(end_pose.size(), 4U);
   Vec2d end_pose_to_world_frame = Vec2d(end_pose[0], end_pose[1]);
 
   end_pose_to_world_frame.SelfRotate(rotate_angle);

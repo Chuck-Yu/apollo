@@ -16,9 +16,9 @@
 
 #include "modules/control/submodules/lat_lon_controller_submodule.h"
 
+#include "cyber/time/clock.h"
 #include "modules/common/adapters/adapter_gflags.h"
 #include "modules/common/latency_recorder/latency_recorder.h"
-#include "modules/common/time/time.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/control/common/control_gflags.h"
 
@@ -29,7 +29,7 @@ using apollo::canbus::Chassis;
 using apollo::common::ErrorCode;
 using apollo::common::Status;
 using apollo::common::StatusPb;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 
 LatLonControllerSubmodule::LatLonControllerSubmodule()
     : monitor_logger_buffer_(common::monitor::MonitorMessageItem::CONTROL) {}
@@ -41,13 +41,14 @@ std::string LatLonControllerSubmodule::Name() const {
 }
 
 bool LatLonControllerSubmodule::Init() {
+  injector_ = std::make_shared<DependencyInjector>();
   // lateral controller initialization
   ACHECK(cyber::common::GetProtoFromFile(FLAGS_lateral_controller_conf_file,
                                          &lateral_controller_conf_))
       << "Unable to load lateral controller conf file: "
       << FLAGS_lateral_controller_conf_file;
 
-  if (!lateral_controller_.Init(&lateral_controller_conf_).ok()) {
+  if (!lateral_controller_.Init(injector_, &lateral_controller_conf_).ok()) {
     monitor_logger_buffer_.ERROR(
         "Control init lateral controller failed! Stopping...");
     return false;
@@ -58,7 +59,8 @@ bool LatLonControllerSubmodule::Init() {
       << "Unable to load longitudinal controller conf file: " +
              FLAGS_longitudinal_controller_conf_file;
 
-  if (!longitudinal_controller_.Init(&longitudinal_controller_conf_).ok()) {
+  if (!longitudinal_controller_.Init(injector_, &longitudinal_controller_conf_)
+           .ok()) {
     monitor_logger_buffer_.ERROR(
         "Control init longitudinal controller failed! Stopping...");
     return false;

@@ -16,9 +16,9 @@
 
 #include "modules/control/submodules/mpc_controller_submodule.h"
 
+#include "cyber/time/clock.h"
 #include "modules/common/adapters/adapter_gflags.h"
 #include "modules/common/latency_recorder/latency_recorder.h"
-#include "modules/common/time/time.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/control/common/control_gflags.h"
 
@@ -30,7 +30,7 @@ using apollo::common::ErrorCode;
 using apollo::common::Status;
 using apollo::common::StatusPb;
 using apollo::common::VehicleStateProvider;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 using apollo::localization::LocalizationEstimate;
 using apollo::planning::ADCTrajectory;
 
@@ -44,12 +44,13 @@ std::string MPCControllerSubmodule::Name() const {
 }
 
 bool MPCControllerSubmodule::Init() {
+  injector_ = std::make_shared<DependencyInjector>();
   // TODO(SHU): separate common_control conf from controller conf
   ACHECK(cyber::common::GetProtoFromFile(FLAGS_mpc_controller_conf_file,
                                          &mpc_controller_conf_))
       << "Unable to load control conf file: " << FLAGS_mpc_controller_conf_file;
 
-  if (!mpc_controller_.Init(&mpc_controller_conf_).ok()) {
+  if (!mpc_controller_.Init(injector_, &mpc_controller_conf_).ok()) {
     monitor_logger_buffer_.ERROR(
         "Control init MPC controller failed! Stopping...");
     return false;

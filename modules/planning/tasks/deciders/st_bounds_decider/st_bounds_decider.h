@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -28,7 +29,7 @@
 #include "modules/planning/common/frame.h"
 #include "modules/planning/common/st_graph_data.h"
 #include "modules/planning/proto/planning_config.pb.h"
-#include "modules/planning/proto/st_bounds_decider_config.pb.h"
+#include "modules/planning/proto/task_config.pb.h"
 #include "modules/planning/tasks/deciders/decider.h"
 #include "modules/planning/tasks/deciders/st_bounds_decider/st_driving_limits.h"
 #include "modules/planning/tasks/deciders/st_bounds_decider/st_guide_line.h"
@@ -42,7 +43,8 @@ constexpr double kSTPassableThreshold = 3.0;
 
 class STBoundsDecider : public Decider {
  public:
-  explicit STBoundsDecider(const TaskConfig& config);
+  STBoundsDecider(const TaskConfig& config,
+                  const std::shared_ptr<DependencyInjector>& injector);
 
  private:
   common::Status Process(Frame* const frame,
@@ -57,7 +59,8 @@ class STBoundsDecider : public Decider {
 
   common::Status GenerateRegularSTBound(
       std::vector<std::tuple<double, double, double>>* const st_bound,
-      std::vector<std::tuple<double, double, double>>* const vt_bound);
+      std::vector<std::tuple<double, double, double>>* const vt_bound,
+      std::vector<std::pair<double, double>>* const st_guide_line);
 
   void RemoveInvalidDecisions(
       std::pair<double, double> driving_limit,
@@ -79,6 +82,7 @@ class STBoundsDecider : public Decider {
   void RecordSTGraphDebug(
       const std::vector<STBoundary>& st_graph_data,
       const std::vector<std::tuple<double, double, double>>& st_bound,
+      const std::vector<std::pair<double, double>>& st_guide_line,
       planning_internal::STGraphDebug* const st_graph_debug);
 
  private:

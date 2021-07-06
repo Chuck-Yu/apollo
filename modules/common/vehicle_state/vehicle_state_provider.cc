@@ -19,10 +19,8 @@
 #include <cmath>
 
 #include "Eigen/Core"
-
-#include "cyber/common/log.h"
-
 #include "absl/strings/str_cat.h"
+#include "cyber/common/log.h"
 #include "modules/common/configs/config_gflags.h"
 #include "modules/common/math/euler_angles_zxy.h"
 #include "modules/common/math/quaternion.h"
@@ -30,8 +28,6 @@
 
 namespace apollo {
 namespace common {
-
-VehicleStateProvider::VehicleStateProvider() {}
 
 Status VehicleStateProvider::Update(
     const localization::LocalizationEstimate &localization,
@@ -147,8 +143,8 @@ bool VehicleStateProvider::ConstructExceptLinearVelocity(
   }
 
   if (localization.pose().has_euler_angles()) {
-    vehicle_state_.set_roll(localization.pose().euler_angles().x());
-    vehicle_state_.set_pitch(localization.pose().euler_angles().y());
+    vehicle_state_.set_roll(localization.pose().euler_angles().y());
+    vehicle_state_.set_pitch(localization.pose().euler_angles().x());
     vehicle_state_.set_yaw(localization.pose().euler_angles().z());
   } else {
     math::EulerAnglesZXYd euler_angle(orientation.qw(), orientation.qx(),
@@ -161,23 +157,37 @@ bool VehicleStateProvider::ConstructExceptLinearVelocity(
   return true;
 }
 
-double VehicleStateProvider::x() const { return vehicle_state_.x(); }
+double VehicleStateProvider::x() const {
+  return vehicle_state_.x();
+}
 
-double VehicleStateProvider::y() const { return vehicle_state_.y(); }
+double VehicleStateProvider::y() const {
+  return vehicle_state_.y();
+}
 
-double VehicleStateProvider::z() const { return vehicle_state_.z(); }
+double VehicleStateProvider::z() const {
+  return vehicle_state_.z();
+}
 
-double VehicleStateProvider::roll() const { return vehicle_state_.roll(); }
+double VehicleStateProvider::roll() const {
+  return vehicle_state_.roll();
+}
 
-double VehicleStateProvider::pitch() const { return vehicle_state_.pitch(); }
+double VehicleStateProvider::pitch() const {
+  return vehicle_state_.pitch();
+}
 
-double VehicleStateProvider::yaw() const { return vehicle_state_.yaw(); }
+double VehicleStateProvider::yaw() const {
+  return vehicle_state_.yaw();
+}
 
 double VehicleStateProvider::heading() const {
   return vehicle_state_.heading();
 }
 
-double VehicleStateProvider::kappa() const { return vehicle_state_.kappa(); }
+double VehicleStateProvider::kappa() const {
+  return vehicle_state_.kappa();
+}
 
 double VehicleStateProvider::linear_velocity() const {
   return vehicle_state_.linear_velocity();
@@ -191,7 +201,9 @@ double VehicleStateProvider::linear_acceleration() const {
   return vehicle_state_.linear_acceleration();
 }
 
-double VehicleStateProvider::gear() const { return vehicle_state_.gear(); }
+double VehicleStateProvider::gear() const {
+  return vehicle_state_.gear();
+}
 
 double VehicleStateProvider::steering_percentage() const {
   return vehicle_state_.steering_percentage();

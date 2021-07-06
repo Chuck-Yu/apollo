@@ -21,7 +21,7 @@
 #include "modules/planning/scenarios/yield_sign/stage_approach.h"
 
 #include "cyber/common/log.h"
-#include "modules/common/time/time.h"
+#include "cyber/time/clock.h"
 #include "modules/map/pnc_map/path.h"
 #include "modules/planning/common/frame.h"
 #include "modules/planning/common/planning_context.h"
@@ -34,7 +34,7 @@ namespace scenario {
 namespace yield_sign {
 
 using apollo::common::TrajectoryPoint;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 using apollo::hdmap::PathOverlap;
 
 Stage::StageStatus YieldSignStageApproach::Process(
@@ -131,7 +131,7 @@ Stage::StageStatus YieldSignStageApproach::Process(
           continue;
         }
 
-        PlanningContext::Instance()
+        injector_->planning_context()
             ->mutable_planning_status()
             ->mutable_yield_sign()
             ->add_wait_for_obstacle_id(obstacle->Id());
@@ -150,7 +150,7 @@ Stage::StageStatus YieldSignStageApproach::Process(
 
 Stage::StageStatus YieldSignStageApproach::FinishStage() {
   // update PlanningContext
-  auto* yield_sign_status = PlanningContext::Instance()
+  auto* yield_sign_status = injector_->planning_context()
                                 ->mutable_planning_status()
                                 ->mutable_yield_sign();
 

@@ -17,8 +17,9 @@
 #include "modules/planning/tasks/deciders/lane_change_decider/lane_change_decider.h"
 
 #include <limits>
+#include <memory>
 
-#include "modules/common/time/time.h"
+#include "cyber/time/clock.h"
 #include "modules/planning/common/planning_context.h"
 #include "modules/planning/common/planning_gflags.h"
 
@@ -28,10 +29,12 @@ namespace planning {
 using apollo::common::ErrorCode;
 using apollo::common::SLPoint;
 using apollo::common::Status;
-using apollo::common::time::Clock;
+using apollo::cyber::Clock;
 
-LaneChangeDecider::LaneChangeDecider(const TaskConfig& config)
-    : Decider(config) {
+LaneChangeDecider::LaneChangeDecider(
+    const TaskConfig& config,
+    const std::shared_ptr<DependencyInjector>& injector)
+    : Decider(config, injector) {
   ACHECK(config_.has_lane_change_decider_config());
 }
 
@@ -56,7 +59,7 @@ Status LaneChangeDecider::Process(
     return Status::OK();
   }
 
-  auto* prev_status = PlanningContext::Instance()
+  auto* prev_status = injector_->planning_context()
                           ->mutable_planning_status()
                           ->mutable_change_lane();
   double now = Clock::NowInSeconds();
@@ -144,22 +147,24 @@ Status LaneChangeDecider::Process(
 
 void LaneChangeDecider::UpdatePreparationDistance(
     const bool is_opt_succeed, const Frame* frame,
-    const ReferenceLineInfo* const reference_line_info) {
-  auto* lane_change_status = PlanningContext::Instance()
-                                 ->mutable_planning_status()
-                                 ->mutable_change_lane();
+    const ReferenceLineInfo* const reference_line_info,
+    PlanningContext* planning_context) {
+  auto* lane_change_status =
+      planning_context->mutable_planning_status()->mutable_change_lane();
   ADEBUG << "Current time: " << lane_change_status->timestamp();
   ADEBUG << "Lane Change Status: " << lane_change_status->status();
   // If lane change planning succeeded, update and return
   if (is_opt_succeed) {
-    lane_change_status->set_last_succeed_timestamp(Clock::NowInSeconds());
+    lane_change_status->set_last_succeed_timestamp(
+        Clock::NowInSeconds());
     lane_change_status->set_is_current_opt_succeed(true);
     return;
   }
   // If path optimizer or speed optimizer failed, report the status
   lane_change_status->set_is_current_opt_succeed(false);
   // If the planner just succeed recently, let's be more patient and try again
-  if (Clock::NowInSeconds() - lane_change_status->last_succeed_timestamp() <
+  if (Clock::NowInSeconds() -
+          lane_change_status->last_succeed_timestamp() <
       FLAGS_allowed_lane_change_failure_time) {
     return;
   }
@@ -193,7 +198,7 @@ void LaneChangeDecider::UpdateStatus(ChangeLaneStatus::Status status_code,
 void LaneChangeDecider::UpdateStatus(double timestamp,
                                      ChangeLaneStatus::Status status_code,
                                      const std::string& path_id) {
-  auto* lane_change_status = PlanningContext::Instance()
+  auto* lane_change_status = injector_->planning_context()
                                  ->mutable_planning_status()
                                  ->mutable_change_lane();
   lane_change_status->set_timestamp(timestamp);
